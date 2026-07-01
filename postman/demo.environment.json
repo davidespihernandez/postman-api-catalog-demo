@@ -1,0 +1,24 @@
+{
+  "name": "API Catalog Demo — local",
+  "values": [
+    {
+      "key": "ordersApiUrl",
+      "value": "https://postman-api-catalog-demo-orders.YOUR-SUBDOMAIN.workers.dev",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "paymentsApiUrl",
+      "value": "https://postman-api-catalog-demo-payments.YOUR-SUBDOMAIN.workers.dev",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "usersApiUrl",
+      "value": "https://postman-api-catalog-demo-users.YOUR-SUBDOMAIN.workers.dev",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

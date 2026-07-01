@@ -1,0 +1,97 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Payments API",
+    "version": "1.0.0",
+    "description": "Demo payments service for the Postman API Catalog walkthrough.\n\nOptional query parameters on all endpoints except /openapi.json:\n- delay or wait: milliseconds to wait before responding (max 30000)\n- status or error: HTTP status code to return (e.g. 500); error=true also returns 500"
+  },
+  "servers": [{ "url": "https://example.com", "description": "Replaced at runtime" }],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service is healthy"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "getOpenApi",
+        "summary": "OpenAPI specification",
+        "responses": {
+          "200": {
+            "description": "OpenAPI document"
+          }
+        }
+      }
+    },
+    "/payments": {
+      "get": {
+        "operationId": "listPayments",
+        "summary": "List payments",
+        "responses": {
+          "200": {
+            "description": "Payment list"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createPayment",
+        "summary": "Create payment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["orderId", "amount"],
+                "properties": {
+                  "orderId": { "type": "string" },
+                  "amount": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Payment created"
+          }
+        }
+      }
+    },
+    "/payments/refund": {
+      "post": {
+        "operationId": "refundPayment",
+        "summary": "Refund a payment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["paymentId"],
+                "properties": {
+                  "paymentId": { "type": "string" },
+                  "reason": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Refund processed"
+          },
+          "404": {
+            "description": "Payment not found"
+          }
+        }
+      }
+    }
+  }
+}

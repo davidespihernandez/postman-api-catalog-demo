@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+.env
+.demo-state.env
+.DS_Store

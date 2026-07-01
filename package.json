@@ -1,0 +1,25 @@
+{
+  "name": "postman-api-catalog-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Repeatable Postman API Catalog demo with Cloudflare Workers backends",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidespihernandez/postman-api-catalog-demo.git"
+  },
+  "type": "module",
+  "scripts": {
+    "deploy:orders": "wrangler deploy --config apis/orders/wrangler.toml",
+    "deploy:payments": "wrangler deploy --config apis/payments/wrangler.toml",
+    "deploy:users": "wrangler deploy --config apis/users/wrangler.toml",
+    "delete:payments": "wrangler delete --config apis/payments/wrangler.toml --force",
+    "demo": "./demo.sh"
+  },
+  "devDependencies": {
+    "wrangler": "^4.14.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "Apache-2.0"
+}

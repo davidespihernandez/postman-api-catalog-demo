@@ -1,0 +1,6 @@
+name = "postman-api-catalog-demo-users"
+main = "src/worker.mjs"
+compatibility_date = "2024-11-01"
+
+[observability]
+enabled = true
