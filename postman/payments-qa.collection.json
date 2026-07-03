@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "Payments API — QA",
+    "description": "CRUD validation for Payments API. Run in order — each step saves state for the next via collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "qaRecordId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create payment",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"ord-001\",\n  \"amount\": 49.99,\n  \"status\": \"completed\",\n  \"currency\": \"USD\"\n}"
+        },
+        "url": "{{paymentsApiUrl}}/payments"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+            "const body = pm.response.json();",
+            "pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });",
+            "pm.test('orderId matches', function () { pm.expect(body.orderId).to.eql('ord-001'); });",
+            "pm.test('amount matches', function () { pm.expect(body.amount).to.eql(49.99); });",
+            "pm.collectionVariables.set('qaRecordId', body.id);"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "2. Get payment by ID",
+      "request": {
+        "method": "GET",
+        "url": "{{paymentsApiUrl}}/payments/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "const id = pm.collectionVariables.get('qaRecordId');",
+            "pm.test('ID matches created record', function () { pm.expect(body.id).to.eql(id); });",
+            "pm.test('Status is completed', function () { pm.expect(body.status).to.eql('completed'); });"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "3. List payments",
+      "request": {
+        "method": "GET",
+        "url": "{{paymentsApiUrl}}/payments"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "const id = pm.collectionVariables.get('qaRecordId');",
+            "pm.test('List contains created payment', function () {",
+            "  pm.expect(body.data).to.be.an('array');",
+            "  pm.expect(body.data.some(function (p) { return p.id === id; })).to.be.true;",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "4. Update payment (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"ord-002\",\n  \"amount\": 129.5,\n  \"status\": \"pending\",\n  \"currency\": \"EUR\"\n}"
+        },
+        "url": "{{paymentsApiUrl}}/payments/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.test('Full replace applied', function () {",
+            "  pm.expect(body.orderId).to.eql('ord-002');",
+            "  pm.expect(body.amount).to.eql(129.5);",
+            "  pm.expect(body.status).to.eql('pending');",
+            "  pm.expect(body.currency).to.eql('EUR');",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "5. Partial update payment (PATCH)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completed\"\n}"
+        },
+        "url": "{{paymentsApiUrl}}/payments/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.test('Status patched', function () { pm.expect(body.status).to.eql('completed'); });",
+            "pm.test('Other fields unchanged', function () {",
+            "  pm.expect(body.orderId).to.eql('ord-002');",
+            "  pm.expect(body.amount).to.eql(129.5);",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "6. Delete payment",
+      "request": {
+        "method": "DELETE",
+        "url": "{{paymentsApiUrl}}/payments/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "7. Get payment after delete",
+      "request": {
+        "method": "GET",
+        "url": "{{paymentsApiUrl}}/payments/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 404 Not Found', function () { pm.response.to.have.status(404); });",
+            "const body = pm.response.json();",
+            "pm.test('Error message present', function () { pm.expect(body.error).to.include('not found'); });"
+          ]
+        }
+      }]
+    }
+  ]
+}

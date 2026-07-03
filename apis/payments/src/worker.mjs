@@ -21,6 +21,10 @@ function nextId(prefix) {
   return `${prefix}-${suffix}`;
 }
 
+function findPaymentIndex(id) {
+  return payments.findIndex((item) => item.id === id);
+}
+
 export default {
   async fetch(request) {
     if (request.method === "OPTIONS") {
@@ -57,7 +61,7 @@ export default {
         id: nextId("pay"),
         orderId: body.orderId,
         amount: body.amount,
-        status: "completed",
+        status: body.status ?? "completed",
         currency: body.currency ?? "USD",
       };
       payments.push(payment);
@@ -79,6 +83,62 @@ export default {
       payment.refundReason = body.reason ?? "customer_request";
       payment.refundedAt = new Date().toISOString();
       return json(payment);
+    }
+
+    const paymentMatch = pathname.match(/^\/payments\/([^/]+)$/);
+    if (paymentMatch) {
+      const paymentId = paymentMatch[1];
+      const index = findPaymentIndex(paymentId);
+
+      if (request.method === "GET") {
+        if (index === -1) {
+          return json({ error: "Payment not found" }, 404);
+        }
+        return json(payments[index]);
+      }
+
+      if (request.method === "PUT") {
+        if (index === -1) {
+          return json({ error: "Payment not found" }, 404);
+        }
+        const body = await readJson(request);
+        if (
+          !body ||
+          typeof body.orderId !== "string" ||
+          typeof body.amount !== "number" ||
+          typeof body.status !== "string"
+        ) {
+          return json({ error: "orderId, amount, and status are required" }, 400);
+        }
+        payments[index] = {
+          id: paymentId,
+          orderId: body.orderId,
+          amount: body.amount,
+          status: body.status,
+          currency: body.currency ?? payments[index].currency,
+        };
+        return json(payments[index]);
+      }
+
+      if (request.method === "PATCH") {
+        if (index === -1) {
+          return json({ error: "Payment not found" }, 404);
+        }
+        const body = await readJson(request);
+        if (!body || typeof body !== "object") {
+          return json({ error: "Request body required" }, 400);
+        }
+        payments[index] = { ...payments[index], ...body, id: paymentId };
+        return json(payments[index]);
+      }
+
+      if (request.method === "DELETE") {
+        if (index === -1) {
+          return json({ error: "Payment not found" }, 404);
+        }
+        payments.splice(index, 1);
+        return new Response(null, { status: 204 });
+      }
     }
 
     return json({ error: "Not found", service: SERVICE }, 404);

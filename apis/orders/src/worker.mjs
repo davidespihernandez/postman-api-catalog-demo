@@ -22,6 +22,10 @@ function nextId(prefix) {
   return `${prefix}-${suffix}`;
 }
 
+function findOrderIndex(id) {
+  return orders.findIndex((item) => item.id === id);
+}
+
 export default {
   async fetch(request) {
     if (request.method === "OPTIONS") {
@@ -57,7 +61,7 @@ export default {
       const order = {
         id: nextId("ord"),
         customerId: body.customerId,
-        status: "pending",
+        status: body.status ?? "pending",
         total: body.total,
         currency: body.currency ?? "USD",
       };
@@ -66,12 +70,59 @@ export default {
     }
 
     const orderMatch = pathname.match(/^\/orders\/([^/]+)$/);
-    if (orderMatch && request.method === "GET") {
-      const order = orders.find((item) => item.id === orderMatch[1]);
-      if (!order) {
-        return json({ error: "Order not found" }, 404);
+    if (orderMatch) {
+      const orderId = orderMatch[1];
+      const index = findOrderIndex(orderId);
+
+      if (request.method === "GET") {
+        if (index === -1) {
+          return json({ error: "Order not found" }, 404);
+        }
+        return json(orders[index]);
       }
-      return json(order);
+
+      if (request.method === "PUT") {
+        if (index === -1) {
+          return json({ error: "Order not found" }, 404);
+        }
+        const body = await readJson(request);
+        if (
+          !body ||
+          typeof body.customerId !== "string" ||
+          typeof body.total !== "number" ||
+          typeof body.status !== "string"
+        ) {
+          return json({ error: "customerId, total, and status are required" }, 400);
+        }
+        orders[index] = {
+          id: orderId,
+          customerId: body.customerId,
+          status: body.status,
+          total: body.total,
+          currency: body.currency ?? orders[index].currency,
+        };
+        return json(orders[index]);
+      }
+
+      if (request.method === "PATCH") {
+        if (index === -1) {
+          return json({ error: "Order not found" }, 404);
+        }
+        const body = await readJson(request);
+        if (!body || typeof body !== "object") {
+          return json({ error: "Request body required" }, 400);
+        }
+        orders[index] = { ...orders[index], ...body, id: orderId };
+        return json(orders[index]);
+      }
+
+      if (request.method === "DELETE") {
+        if (index === -1) {
+          return json({ error: "Order not found" }, 404);
+        }
+        orders.splice(index, 1);
+        return new Response(null, { status: 204 });
+      }
     }
 
     return json({ error: "Not found", service: SERVICE }, 404);

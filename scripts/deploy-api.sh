@@ -11,7 +11,7 @@ if [[ -z "$API" ]]; then
 fi
 
 load_env
-ensure_wrangler
+ensure_wrangler_auth
 
 CONFIG="$(wrangler_config "$API")"
 NAME="$(worker_name "$API")"
@@ -19,15 +19,27 @@ WRANGLER="$(wrangler_bin)"
 
 log "Deploying $(api_name "$API") ($NAME)..."
 
-DEPLOY_OUTPUT="$("$WRANGLER" deploy --config "$CONFIG" 2>&1)"
-printf '%s\n' "$DEPLOY_OUTPUT"
+DEPLOY_LOG="$(mktemp)"
+trap 'rm -f "$DEPLOY_LOG"' EXIT
 
-URL="$(printf '%s\n' "$DEPLOY_OUTPUT" | sed -n 's/.*https:\/\/[a-zA-Z0-9.-]*workers\.dev.*/\0/p' | tail -n1)"
-if [[ -z "$URL" ]]; then
-  URL="$(printf '%s\n' "$DEPLOY_OUTPUT" | grep -Eo 'https://[a-zA-Z0-9.-]+\.workers\.dev' | tail -n1 || true)"
+set +e
+"$WRANGLER" deploy --config "$CONFIG" >"$DEPLOY_LOG" 2>&1
+DEPLOY_STATUS=$?
+set -e
+
+cat "$DEPLOY_LOG"
+
+if [[ "$DEPLOY_STATUS" -ne 0 ]]; then
+  if grep -Eqi 'register a workers\.dev subdomain' "$DEPLOY_LOG"; then
+    wrangler_hint_workers_subdomain "$DEPLOY_LOG"
+  fi
+  if grep -Eqi 'not authenticated|log in|login|oauth token' "$DEPLOY_LOG"; then
+    die "Wrangler is not logged in. Run: ./demo.sh setup"
+  fi
+  die "wrangler deploy failed for $NAME (exit $DEPLOY_STATUS). See output above."
 fi
 
-if [[ -z "$URL" ]]; then
+if ! URL="$(extract_worker_url "$DEPLOY_LOG" "$NAME")"; then
   die "Could not detect worker URL from wrangler output. Set $(echo "$API" | tr '[:lower:]' '[:upper:]')_API_URL in .env manually."
 fi
 
@@ -35,12 +47,7 @@ KEY="$(echo "$API" | tr '[:lower:]' '[:upper:]')_API_URL"
 write_state "$KEY" "$URL"
 log "Saved $KEY=$URL"
 
-HEALTH_URL="${URL}/health"
-HTTP_CODE="$(curl -sS -o /tmp/demo-health.json -w '%{http_code}' "$HEALTH_URL")"
-if [[ "$HTTP_CODE" != "200" ]]; then
-  die "Health check failed for $HEALTH_URL (HTTP $HTTP_CODE)"
-fi
-
-log "Health check OK: $HEALTH_URL"
+wait_for_health "$URL" "$(api_name "$API")"
+log "Health check OK: ${URL}/health"
 cat /tmp/demo-health.json
 printf '\n'

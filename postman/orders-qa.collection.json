@@ -1,0 +1,169 @@
+{
+  "info": {
+    "name": "Orders API — QA",
+    "description": "CRUD validation for Orders API. Run in order — each step saves state for the next via collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "qaRecordId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create order",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"usr-002\",\n  \"total\": 99.5,\n  \"status\": \"pending\",\n  \"currency\": \"USD\"\n}"
+        },
+        "url": "{{ordersApiUrl}}/orders"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+            "const body = pm.response.json();",
+            "pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });",
+            "pm.test('customerId matches', function () { pm.expect(body.customerId).to.eql('usr-002'); });",
+            "pm.test('total matches', function () { pm.expect(body.total).to.eql(99.5); });",
+            "pm.collectionVariables.set('qaRecordId', body.id);"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "2. Get order by ID",
+      "request": {
+        "method": "GET",
+        "url": "{{ordersApiUrl}}/orders/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "const id = pm.collectionVariables.get('qaRecordId');",
+            "pm.test('ID matches created record', function () { pm.expect(body.id).to.eql(id); });",
+            "pm.test('Status is pending', function () { pm.expect(body.status).to.eql('pending'); });"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "3. List orders",
+      "request": {
+        "method": "GET",
+        "url": "{{ordersApiUrl}}/orders"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "const id = pm.collectionVariables.get('qaRecordId');",
+            "pm.test('List contains created order', function () {",
+            "  pm.expect(body.data).to.be.an('array');",
+            "  pm.expect(body.data.some(function (o) { return o.id === id; })).to.be.true;",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "4. Update order (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerId\": \"usr-003\",\n  \"total\": 149.99,\n  \"status\": \"processing\",\n  \"currency\": \"EUR\"\n}"
+        },
+        "url": "{{ordersApiUrl}}/orders/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.test('Full replace applied', function () {",
+            "  pm.expect(body.customerId).to.eql('usr-003');",
+            "  pm.expect(body.total).to.eql(149.99);",
+            "  pm.expect(body.status).to.eql('processing');",
+            "  pm.expect(body.currency).to.eql('EUR');",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "5. Partial update order (PATCH)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"shipped\"\n}"
+        },
+        "url": "{{ordersApiUrl}}/orders/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.test('Status patched', function () { pm.expect(body.status).to.eql('shipped'); });",
+            "pm.test('Other fields unchanged', function () {",
+            "  pm.expect(body.customerId).to.eql('usr-003');",
+            "  pm.expect(body.total).to.eql(149.99);",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "6. Delete order",
+      "request": {
+        "method": "DELETE",
+        "url": "{{ordersApiUrl}}/orders/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "7. Get order after delete",
+      "request": {
+        "method": "GET",
+        "url": "{{ordersApiUrl}}/orders/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 404 Not Found', function () { pm.response.to.have.status(404); });",
+            "const body = pm.response.json();",
+            "pm.test('Error message present', function () { pm.expect(body.error).to.include('not found'); });"
+          ]
+        }
+      }]
+    }
+  ]
+}

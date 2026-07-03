@@ -1,0 +1,168 @@
+{
+  "info": {
+    "name": "Users API — QA",
+    "description": "CRUD validation for Users API. Run in order — each step saves state for the next via collection variables.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "qaRecordId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. Create user",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Test User\",\n  \"email\": \"qa.test@example.com\",\n  \"role\": \"customer\"\n}"
+        },
+        "url": "{{usersApiUrl}}/users"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });",
+            "const body = pm.response.json();",
+            "pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });",
+            "pm.test('name matches', function () { pm.expect(body.name).to.eql('QA Test User'); });",
+            "pm.test('email matches', function () { pm.expect(body.email).to.eql('qa.test@example.com'); });",
+            "pm.collectionVariables.set('qaRecordId', body.id);"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "2. Get user by ID",
+      "request": {
+        "method": "GET",
+        "url": "{{usersApiUrl}}/users/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "const id = pm.collectionVariables.get('qaRecordId');",
+            "pm.test('ID matches created record', function () { pm.expect(body.id).to.eql(id); });",
+            "pm.test('Role is customer', function () { pm.expect(body.role).to.eql('customer'); });"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "3. List users",
+      "request": {
+        "method": "GET",
+        "url": "{{usersApiUrl}}/users"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "const id = pm.collectionVariables.get('qaRecordId');",
+            "pm.test('List contains created user', function () {",
+            "  pm.expect(body.data).to.be.an('array');",
+            "  pm.expect(body.data.some(function (u) { return u.id === id; })).to.be.true;",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "4. Update user (PUT)",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"QA Updated User\",\n  \"email\": \"qa.updated@example.com\",\n  \"role\": \"admin\"\n}"
+        },
+        "url": "{{usersApiUrl}}/users/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.test('Full replace applied', function () {",
+            "  pm.expect(body.name).to.eql('QA Updated User');",
+            "  pm.expect(body.email).to.eql('qa.updated@example.com');",
+            "  pm.expect(body.role).to.eql('admin');",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "5. Partial update user (PATCH)",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"customer\"\n}"
+        },
+        "url": "{{usersApiUrl}}/users/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });",
+            "const body = pm.response.json();",
+            "pm.test('Role patched', function () { pm.expect(body.role).to.eql('customer'); });",
+            "pm.test('Other fields unchanged', function () {",
+            "  pm.expect(body.name).to.eql('QA Updated User');",
+            "  pm.expect(body.email).to.eql('qa.updated@example.com');",
+            "});"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "6. Delete user",
+      "request": {
+        "method": "DELETE",
+        "url": "{{usersApiUrl}}/users/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 204 No Content', function () { pm.response.to.have.status(204); });"
+          ]
+        }
+      }]
+    },
+    {
+      "name": "7. Get user after delete",
+      "request": {
+        "method": "GET",
+        "url": "{{usersApiUrl}}/users/{{qaRecordId}}"
+      },
+      "event": [{
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            "pm.test('Status 404 Not Found', function () { pm.response.to.have.status(404); });",
+            "const body = pm.response.json();",
+            "pm.test('Error message present', function () { pm.expect(body.error).to.include('not found'); });"
+          ]
+        }
+      }]
+    }
+  ]
+}
