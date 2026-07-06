@@ -1,0 +1,46 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/payments"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "orderId": "ord-001",
+        "amount": 49.99,
+        "status": "completed",
+        "currency": "USD"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Payment not found",
+        "service": "payments-api"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Payment not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "payments-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 2000

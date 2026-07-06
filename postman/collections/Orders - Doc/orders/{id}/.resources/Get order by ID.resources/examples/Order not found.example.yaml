@@ -1,0 +1,39 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/orders/:id"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: ord-001
+      description: Order identifier
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Order not found"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Order not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "orders-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 2000

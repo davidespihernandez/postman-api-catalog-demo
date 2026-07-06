@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{usersApiUrl}}/openapi.json"
+method: GET
+order: 3000

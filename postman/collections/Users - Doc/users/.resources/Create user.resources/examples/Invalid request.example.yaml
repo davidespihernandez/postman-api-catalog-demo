@@ -1,0 +1,45 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/users"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "name": "QA Test User",
+        "email": "qa.test@example.com",
+        "role": "customer"
+      }
+response:
+  statusCode: 400
+  statusText: Bad Request
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "User not found",
+        "service": "users-api"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "User not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "users-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 2000

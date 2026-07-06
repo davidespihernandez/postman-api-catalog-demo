@@ -1,0 +1,66 @@
+$kind: http-example
+name: Internal server error. Simulatable with ?status=500 on any endpoint except /openapi.json.
+request:
+  url: "{{baseUrl}}/orders/:id"
+  method: PUT
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: ord-001
+      description: Order identifier
+  body:
+    type: json
+    content: |-
+      {
+        "customerId": "usr-003",
+        "total": 149.99,
+        "status": "processing",
+        "currency": "EUR"
+      }
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Simulated response for API Catalog demo",
+        "status": 500,
+        "simulated": true,
+        "service": "orders-api",
+        "delayMs": 2000
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Simulated response for API Catalog demo"
+          },
+          "status": {
+            "type": "integer",
+            "example": 500
+          },
+          "simulated": {
+            "type": "boolean",
+            "example": true
+          },
+          "service": {
+            "type": "string",
+            "example": "orders-api"
+          },
+          "delayMs": {
+            "type": "integer",
+            "example": 2000
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 4000

@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/users/:id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: usr-001
+    description: User identifier
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "usr-001"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+examples: ./.resources/Delete user.resources/examples
+order: 4000

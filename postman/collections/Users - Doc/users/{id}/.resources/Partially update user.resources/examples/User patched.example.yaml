@@ -1,0 +1,69 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/users/:id"
+  method: PATCH
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: usr-001
+      description: User identifier
+  body:
+    type: json
+    content: |-
+      {
+        "name": "string",
+        "email": "MPglA4wCbwkYOmM@YzDanimhOCDSRXiNLlhgdhIdfpfjUfbfZ.tem",
+        "role": "customer"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "usr-001",
+        "name": "Alice Chen",
+        "email": "alice@example.com",
+        "role": "customer"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "usr-001",
+            "description": "Unique user identifier"
+          },
+          "name": {
+            "type": "string",
+            "example": "Alice Chen",
+            "description": "Display name"
+          },
+          "email": {
+            "type": "string",
+            "example": "alice@example.com",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "customer",
+              "admin"
+            ],
+            "example": "customer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email",
+          "role"
+        ]
+      }
+order: 1000

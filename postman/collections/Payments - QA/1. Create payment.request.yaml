@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/payments"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "orderId": "ord-001",
+      "amount": 49.99,
+      "status": "completed",
+      "currency": "USD"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });
+      const body = pm.response.json();
+      pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });
+      pm.test('orderId matches', function () { pm.expect(body.orderId).to.eql('ord-001'); });
+      pm.test('amount matches', function () { pm.expect(body.amount).to.eql(49.99); });
+      pm.collectionVariables.set('qaRecordId', body.id);
+    language: text/javascript
+order: 1000

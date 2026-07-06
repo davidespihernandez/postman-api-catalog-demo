@@ -1,0 +1,12 @@
+owner: "53522859"
+team: "14577123"
+lastUpdatedBy: "53522859"
+lastRevision: 1783097223000
+name: Production Payments
+color: null
+values:
+  - key: baseUrl
+    value: https://postman-api-catalog-demo-payments.davidespi.workers.dev
+    enabled: true
+createdAt: 2026-07-03T16:45:09.000Z
+updatedAt: 2026-07-03T16:47:03.000Z

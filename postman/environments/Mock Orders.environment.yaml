@@ -1,0 +1,12 @@
+owner: "53522859"
+team: "14577123"
+lastUpdatedBy: "53522859"
+lastRevision: 1783348761000
+name: Mock Orders
+color: null
+values:
+  - key: baseUrl
+    value: https://d854aaa6-916c-4366-b5f0-cae9ea3e893e.mock.pstmn.io
+    enabled: true
+createdAt: 2026-07-03T16:21:04.000Z
+updatedAt: 2026-07-06T14:39:21.000Z

@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/payments/{{qaRecordId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "status": "completed"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });
+      const body = pm.response.json();
+      pm.test('Status patched', function () { pm.expect(body.status).to.eql('completed'); });
+      pm.test('Other fields unchanged', function () {
+        pm.expect(body.orderId).to.eql('ord-002');
+        pm.expect(body.amount).to.eql(129.5);
+      });
+    language: text/javascript
+order: 5000

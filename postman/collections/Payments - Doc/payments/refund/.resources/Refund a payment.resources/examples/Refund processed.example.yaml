@@ -1,0 +1,86 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/payments/refund"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "paymentId": "pay-001",
+        "reason": "customer_request"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "pay-001",
+        "orderId": "ord-001",
+        "amount": 49.99,
+        "status": "completed",
+        "currency": "USD",
+        "refundReason": "customer_request",
+        "refundedAt": "1969-06-15T07:36:36.112Z"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "pay-001",
+            "description": "Unique payment identifier"
+          },
+          "orderId": {
+            "type": "string",
+            "example": "ord-001",
+            "description": "Associated order ID"
+          },
+          "amount": {
+            "type": "number",
+            "minimum": 0,
+            "example": 49.99,
+            "format": "double"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "completed",
+              "refunded"
+            ],
+            "example": "completed"
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD"
+          },
+          "refundReason": {
+            "type": "string",
+            "example": "customer_request",
+            "description": "Present when status is refunded"
+          },
+          "refundedAt": {
+            "type": "string",
+            "description": "ISO timestamp when refund was processed",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "orderId",
+          "amount",
+          "status",
+          "currency"
+        ]
+      }
+order: 1000

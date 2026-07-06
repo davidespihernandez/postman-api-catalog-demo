@@ -1,0 +1,74 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/orders/:id"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: ord-001
+      description: Order identifier
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "ord-001",
+        "customerId": "usr-001",
+        "status": "shipped",
+        "total": 49.99,
+        "currency": "USD"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ord-001",
+            "description": "Unique order identifier"
+          },
+          "customerId": {
+            "type": "string",
+            "example": "usr-001",
+            "description": "ID of the customer who placed the order"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "cancelled"
+            ],
+            "example": "pending",
+            "description": "Order lifecycle status"
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0,
+            "example": 49.99,
+            "description": "Order total amount",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD",
+            "description": "ISO 4217 currency code"
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "status",
+          "total",
+          "currency"
+        ]
+      }
+order: 1000

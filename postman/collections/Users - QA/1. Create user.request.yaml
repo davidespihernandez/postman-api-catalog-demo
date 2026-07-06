@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/users"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "QA Test User",
+      "email": "qa.test@example.com",
+      "role": "customer"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });
+      const body = pm.response.json();
+      pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });
+      pm.test('name matches', function () { pm.expect(body.name).to.eql('QA Test User'); });
+      pm.test('email matches', function () { pm.expect(body.email).to.eql('qa.test@example.com'); });
+      pm.collectionVariables.set('qaRecordId', body.id);
+    language: text/javascript
+order: 1000

@@ -1,0 +1,44 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/payments/refund"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "paymentId": "pay-001",
+        "reason": "customer_request"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Payment not found",
+        "service": "payments-api"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Payment not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "payments-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 3000

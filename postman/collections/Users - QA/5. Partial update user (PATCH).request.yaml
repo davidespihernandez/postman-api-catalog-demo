@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/users/{{qaRecordId}}"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "role": "customer"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });
+      const body = pm.response.json();
+      pm.test('Role patched', function () { pm.expect(body.role).to.eql('customer'); });
+      pm.test('Other fields unchanged', function () {
+        pm.expect(body.name).to.eql('QA Updated User');
+        pm.expect(body.email).to.eql('qa.updated@example.com');
+      });
+    language: text/javascript
+order: 5000

@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/users/{{qaRecordId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "QA Updated User",
+      "email": "qa.updated@example.com",
+      "role": "admin"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });
+      const body = pm.response.json();
+      pm.test('Full replace applied', function () {
+        pm.expect(body.name).to.eql('QA Updated User');
+        pm.expect(body.email).to.eql('qa.updated@example.com');
+        pm.expect(body.role).to.eql('admin');
+      });
+    language: text/javascript
+order: 4000

@@ -1,0 +1,15 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/users/:id"
+  method: DELETE
+  pathVariables:
+    - key: id
+      value: usr-001
+      description: User identifier
+response:
+  statusCode: 204
+  statusText: No Content
+  body:
+    type: text
+    content: ""
+order: 1000

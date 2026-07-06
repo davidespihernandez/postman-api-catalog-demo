@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/users/{{qaRecordId}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 404 Not Found', function () { pm.response.to.have.status(404); });
+      const body = pm.response.json();
+      pm.test('Error message present', function () { pm.expect(body.error).to.include('not found'); });
+    language: text/javascript
+order: 7000

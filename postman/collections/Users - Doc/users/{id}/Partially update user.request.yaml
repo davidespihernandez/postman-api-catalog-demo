@@ -1,0 +1,54 @@
+$kind: http-request
+url: "{{baseUrl}}/users/:id"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: usr-001
+    description: User identifier
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "usr-001"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "name": "string",
+      "email": "MPglA4wCbwkYOmM@YzDanimhOCDSRXiNLlhgdhIdfpfjUfbfZ.tem",
+      "role": "customer"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "customer",
+            "admin"
+          ],
+          "example": "customer"
+        }
+      }
+    }
+examples: ./.resources/Partially update user.resources/examples
+order: 3000

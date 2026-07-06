@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{paymentsApiUrl}}/openapi.json"
+method: GET
+order: 2000

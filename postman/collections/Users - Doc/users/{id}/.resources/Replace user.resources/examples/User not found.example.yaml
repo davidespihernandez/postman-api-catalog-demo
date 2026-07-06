@@ -1,0 +1,49 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/users/:id"
+  method: PUT
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: usr-001
+      description: User identifier
+  body:
+    type: json
+    content: |-
+      {
+        "name": "QA Updated User",
+        "email": "qa.updated@example.com",
+        "role": "customer"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "User not found",
+        "service": "users-api"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "User not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "users-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 3000

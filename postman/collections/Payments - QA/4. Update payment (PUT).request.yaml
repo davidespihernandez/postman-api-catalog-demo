@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/payments/{{qaRecordId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "orderId": "ord-002",
+      "amount": 129.5,
+      "status": "pending",
+      "currency": "EUR"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });
+      const body = pm.response.json();
+      pm.test('Full replace applied', function () {
+        pm.expect(body.orderId).to.eql('ord-002');
+        pm.expect(body.amount).to.eql(129.5);
+        pm.expect(body.status).to.eql('pending');
+        pm.expect(body.currency).to.eql('EUR');
+      });
+    language: text/javascript
+order: 4000

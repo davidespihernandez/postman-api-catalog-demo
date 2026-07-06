@@ -1,0 +1,32 @@
+$kind: http-request
+url: "{{baseUrl}}/payments/refund"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "paymentId": "pay-001",
+      "reason": "customer_request"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "paymentId": {
+          "type": "string",
+          "example": "pay-001"
+        },
+        "reason": {
+          "type": "string",
+          "example": "customer_request"
+        }
+      },
+      "required": [
+        "paymentId"
+      ]
+    }
+examples: ./.resources/Refund a payment.resources/examples
+order: 1000

@@ -1,0 +1,80 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/orders"
+  method: POST
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "customerId": "usr-002",
+        "total": 99.5,
+        "status": "pending",
+        "currency": "USD"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "id": "ord-a1b2c3d4",
+        "customerId": "usr-002",
+        "status": "pending",
+        "total": 99.5,
+        "currency": "USD"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ord-001",
+            "description": "Unique order identifier"
+          },
+          "customerId": {
+            "type": "string",
+            "example": "usr-001",
+            "description": "ID of the customer who placed the order"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "processing",
+              "shipped",
+              "cancelled"
+            ],
+            "example": "pending",
+            "description": "Order lifecycle status"
+          },
+          "total": {
+            "type": "number",
+            "minimum": 0,
+            "example": 49.99,
+            "description": "Order total amount",
+            "format": "double"
+          },
+          "currency": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "example": "USD",
+            "description": "ISO 4217 currency code"
+          }
+        },
+        "required": [
+          "id",
+          "customerId",
+          "status",
+          "total",
+          "currency"
+        ]
+      }
+order: 1000

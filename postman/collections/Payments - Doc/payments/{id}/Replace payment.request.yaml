@@ -1,0 +1,70 @@
+$kind: http-request
+url: "{{baseUrl}}/payments/:id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: pay-001
+    description: Payment identifier
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "pay-001"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "orderId": "ord-002",
+      "amount": 129.5,
+      "status": "completed",
+      "currency": "USD"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "example": "ord-002"
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "example": 129.5,
+          "format": "double"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "completed",
+            "refunded"
+          ],
+          "example": "completed"
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "example": "USD"
+        }
+      },
+      "required": [
+        "orderId",
+        "amount",
+        "status"
+      ]
+    }
+examples: ./.resources/Replace payment.resources/examples
+order: 2000

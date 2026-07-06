@@ -1,0 +1,53 @@
+$kind: http-request
+url: "{{baseUrl}}/payments"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "orderId": "ord-001",
+      "amount": 49.99,
+      "status": "completed",
+      "currency": "USD"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "example": "ord-001"
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0,
+          "example": 49.99,
+          "format": "double"
+        },
+        "status": {
+          "allOf": [
+            {
+              "type": "string",
+              "example": "completed"
+            }
+          ]
+        },
+        "currency": {
+          "allOf": [
+            {
+              "type": "string",
+              "example": "USD"
+            }
+          ]
+        }
+      },
+      "required": [
+        "orderId",
+        "amount"
+      ]
+    }
+examples: ./.resources/Create payment.resources/examples
+order: 4000

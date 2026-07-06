@@ -1,0 +1,97 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/openapi.json"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "openapi": "3.0.3",
+        "info": {
+          "title": "Orders API",
+          "version": "1.0.0",
+          "description": "string"
+        },
+        "paths": {
+          "key_0": 5307.161398901075,
+          "key_1": 4345.400855783415
+        },
+        "servers": [
+          {
+            "url": "https://NgPT.fzcCurK-lGXw9LtddJDIjQWlu2K3MymVOK-EOKBfXzCmL-d",
+            "description": "string"
+          },
+          {
+            "url": "http://hfTlVzNTsnMPsWNOSfVcJhHwJ.qtxQWxWX.vlmgjMrfAcZRDL18RqLVQ3S5z+9F",
+            "description": "string"
+          }
+        ],
+        "components": {
+          "key_0": "string"
+        }
+      }
+    $type: |-
+      {
+        "description": "OpenAPI 3.0 document",
+        "type": "object",
+        "properties": {
+          "openapi": {
+            "type": "string",
+            "example": "3.0.3"
+          },
+          "info": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "example": "Orders API"
+              },
+              "version": {
+                "type": "string",
+                "example": "1.0.0"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "version"
+            ]
+          },
+          "servers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "description": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "paths": {
+            "type": "object"
+          },
+          "components": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "openapi",
+          "info",
+          "paths"
+        ]
+      }
+order: 1000

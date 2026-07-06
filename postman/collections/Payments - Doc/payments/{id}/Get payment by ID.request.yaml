@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/payments/:id"
+method: GET
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: pay-001
+    description: Payment identifier
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "pay-001"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+examples: ./.resources/Get payment by ID.resources/examples
+order: 1000

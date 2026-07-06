@@ -1,0 +1,12 @@
+owner: "53522859"
+team: "14577123"
+lastUpdatedBy: "53522859"
+lastRevision: 1783097135000
+name: Production Orders
+color: null
+values:
+  - key: baseUrl
+    value: https://postman-api-catalog-demo-orders.davidespi.workers.dev
+    enabled: true
+createdAt: 2026-07-03T11:11:30.000Z
+updatedAt: 2026-07-03T16:45:35.000Z

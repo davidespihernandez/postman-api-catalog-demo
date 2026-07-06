@@ -1,0 +1,51 @@
+$kind: http-example
+name: Internal server error. Simulatable with ?status=500 on any endpoint except /openapi.json.
+request:
+  url: "{{baseUrl}}/payments"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 500
+  statusText: Internal Server Error
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Simulated response for API Catalog demo",
+        "status": 500,
+        "simulated": true,
+        "service": "payments-api",
+        "delayMs": 6350
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Simulated response for API Catalog demo"
+          },
+          "status": {
+            "type": "integer",
+            "example": 500
+          },
+          "simulated": {
+            "type": "boolean",
+            "example": true
+          },
+          "service": {
+            "type": "string",
+            "example": "payments-api"
+          },
+          "delayMs": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 2000

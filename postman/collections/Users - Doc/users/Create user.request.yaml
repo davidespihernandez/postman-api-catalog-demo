@@ -1,0 +1,43 @@
+$kind: http-request
+url: "{{baseUrl}}/users"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "QA Test User",
+      "email": "qa.test@example.com",
+      "role": "customer"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "example": "QA Test User"
+        },
+        "email": {
+          "type": "string",
+          "example": "qa.test@example.com",
+          "format": "email"
+        },
+        "role": {
+          "allOf": [
+            {
+              "type": "string",
+              "example": "customer"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "email"
+      ]
+    }
+examples: ./.resources/Create user.resources/examples
+order: 3000

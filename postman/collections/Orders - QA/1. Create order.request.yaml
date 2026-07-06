@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "customerId": "usr-002",
+      "total": 99.5,
+      "status": "pending",
+      "currency": "USD"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 201 Created', function () { pm.response.to.have.status(201); });
+      const body = pm.response.json();
+      pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });
+      pm.test('customerId matches', function () { pm.expect(body.customerId).to.eql('usr-002'); });
+      pm.test('total matches', function () { pm.expect(body.total).to.eql(99.5); });
+      pm.collectionVariables.set('qaRecordId', body.id);
+    language: text/javascript
+order: 1000

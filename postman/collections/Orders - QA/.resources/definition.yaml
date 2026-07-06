@@ -1,0 +1,4 @@
+$kind: collection
+description: CRUD validation for Orders API. Run in order — each step saves state for the next via collection variables.
+variables:
+  qaRecordId: ""

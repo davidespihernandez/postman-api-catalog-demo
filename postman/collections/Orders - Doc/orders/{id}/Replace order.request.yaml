@@ -1,0 +1,71 @@
+$kind: http-request
+url: "{{baseUrl}}/orders/:id"
+method: PUT
+headers:
+  Content-Type: application/json
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: ord-001
+    description: Order identifier
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "ord-001"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "customerId": "usr-003",
+      "total": 149.99,
+      "status": "processing",
+      "currency": "EUR"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string",
+          "example": "usr-003"
+        },
+        "total": {
+          "type": "number",
+          "minimum": 0,
+          "example": 149.99,
+          "format": "double"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "processing",
+            "shipped",
+            "cancelled"
+          ],
+          "example": "processing"
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "example": "EUR"
+        }
+      },
+      "required": [
+        "customerId",
+        "total",
+        "status"
+      ]
+    }
+examples: ./.resources/Replace order.resources/examples
+order: 2000

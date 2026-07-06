@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseUrl}}/openapi.json"
+method: GET
+headers:
+  Accept: application/json
+examples: ./.resources/OpenAPI specification.resources/examples
+order: 1000

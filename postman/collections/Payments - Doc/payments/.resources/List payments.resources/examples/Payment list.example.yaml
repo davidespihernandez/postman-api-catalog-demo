@@ -1,0 +1,109 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/payments"
+  method: GET
+  headers:
+    Accept: application/json
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "data": [
+          {
+            "id": "pay-001",
+            "orderId": "ord-001",
+            "amount": 49.99,
+            "status": "completed",
+            "currency": "USD",
+            "refundReason": "customer_request",
+            "refundedAt": "1977-04-05T07:31:00.985Z"
+          },
+          {
+            "id": "pay-001",
+            "orderId": "ord-001",
+            "amount": 49.99,
+            "status": "completed",
+            "currency": "USD",
+            "refundReason": "customer_request",
+            "refundedAt": "2020-07-22T06:03:40.561Z"
+          }
+        ],
+        "count": 1
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "pay-001",
+                  "description": "Unique payment identifier"
+                },
+                "orderId": {
+                  "type": "string",
+                  "example": "ord-001",
+                  "description": "Associated order ID"
+                },
+                "amount": {
+                  "type": "number",
+                  "minimum": 0,
+                  "example": 49.99,
+                  "format": "double"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "completed",
+                    "refunded"
+                  ],
+                  "example": "completed"
+                },
+                "currency": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3,
+                  "example": "USD"
+                },
+                "refundReason": {
+                  "type": "string",
+                  "example": "customer_request",
+                  "description": "Present when status is refunded"
+                },
+                "refundedAt": {
+                  "type": "string",
+                  "description": "ISO timestamp when refund was processed",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "orderId",
+                "amount",
+                "status",
+                "currency"
+              ]
+            }
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "example": 1
+          }
+        },
+        "required": [
+          "data",
+          "count"
+        ]
+      }
+order: 1000

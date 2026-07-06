@@ -1,0 +1,50 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/payments/:id"
+  method: PUT
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: pay-001
+      description: Payment identifier
+  body:
+    type: json
+    content: |-
+      {
+        "orderId": "ord-002",
+        "amount": 129.5,
+        "status": "completed",
+        "currency": "USD"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Payment not found",
+        "service": "payments-api"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Payment not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "payments-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 3000

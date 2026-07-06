@@ -1,0 +1,11 @@
+$kind: collection
+description: |-
+  Demo payments service for the Postman API Catalog walkthrough.
+
+  Optional query parameters on all endpoints except /openapi.json:
+
+  - delay or wait: milliseconds to wait before responding (max 30000)
+      
+  - status or error: HTTP status code to return (e.g. 500); error=true also returns 500
+variables:
+  baseUrl: https://postman-api-catalog-demo-payments.davidespi.workers.dev

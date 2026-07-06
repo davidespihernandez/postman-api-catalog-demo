@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/orders/:id"
+method: DELETE
+headers:
+  Accept: application/json
+pathVariables:
+  - key: id
+    value: ord-001
+    description: Order identifier
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "ord-001"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+examples: ./.resources/Delete order.resources/examples
+order: 4000

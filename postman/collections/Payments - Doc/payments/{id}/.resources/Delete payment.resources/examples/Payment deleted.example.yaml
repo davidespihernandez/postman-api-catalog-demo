@@ -1,0 +1,15 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/payments/:id"
+  method: DELETE
+  pathVariables:
+    - key: id
+      value: pay-001
+      description: Payment identifier
+response:
+  statusCode: 204
+  statusText: No Content
+  body:
+    type: text
+    content: ""
+order: 1000

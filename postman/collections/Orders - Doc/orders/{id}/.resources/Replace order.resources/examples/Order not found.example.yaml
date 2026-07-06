@@ -1,0 +1,50 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/orders/:id"
+  method: PUT
+  headers:
+    Content-Type: application/json
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: ord-001
+      description: Order identifier
+  body:
+    type: json
+    content: |-
+      {
+        "customerId": "usr-003",
+        "total": 149.99,
+        "status": "processing",
+        "currency": "EUR"
+      }
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "Order not found",
+        "service": "orders-api"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Order not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "orders-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 3000

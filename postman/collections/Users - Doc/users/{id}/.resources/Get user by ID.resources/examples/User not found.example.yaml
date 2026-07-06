@@ -1,0 +1,40 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/users/:id"
+  method: GET
+  headers:
+    Accept: application/json
+  pathVariables:
+    - key: id
+      value: usr-001
+      description: User identifier
+response:
+  statusCode: 404
+  statusText: Not Found
+  headers:
+    Content-Type: application/json
+  body:
+    type: json
+    content: |-
+      {
+        "error": "User not found",
+        "service": "users-api"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "User not found"
+          },
+          "service": {
+            "type": "string",
+            "example": "users-api"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      }
+order: 2000
