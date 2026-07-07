@@ -48,6 +48,24 @@ wrangler_config() {
   echo "$ROOT_DIR/apis/$1/wrangler.toml"
 }
 
+openapi_spec_path() {
+  case "$1" in
+    orders) echo "$ROOT_DIR/orders.yaml" ;;
+    payments) echo "$ROOT_DIR/payments.yaml" ;;
+    users) echo "$ROOT_DIR/users.yaml" ;;
+    *) die "Unknown API: $1" ;;
+  esac
+}
+
+stage_openapi_for_deploy() {
+  local api="$1"
+  local src dest
+  src="$(openapi_spec_path "$api")"
+  dest="$ROOT_DIR/apis/$api/openapi.json"
+  [[ -f "$src" ]] || die "OpenAPI spec not found: $src (expected repo-root ${api}.yaml)"
+  cp "$src" "$dest"
+}
+
 state_file() {
   echo "$ROOT_DIR/.demo-state.env"
 }

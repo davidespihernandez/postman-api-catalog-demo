@@ -17,10 +17,13 @@ API Catalog ← Manual import → Postman Workspace
 
 ## Collections (`postman/`)
 
-- `orders-qa`, `payments-qa`, `users-qa` — CRUD validation with chained test scripts
-- `demo.environment.json`
+Native Postman layout synced from the repo:
 
-Docs collections: import `/openapi.json` per API in Postman (not in repo).
+- `collections/Orders - QA`, `Payments - QA`, `Users - QA` — CRUD validation
+- `collections/* - Doc` — documentation (includes **Payments → Refund a payment** for webhook demo)
+- `environments/Production *` — `baseUrl` per API; Payments also has `refundWebhookUrl`
+
+Worker webhook: set `REFUND_WEBHOOK_URL` in `.env` before deploy (same URL as Postman webhook).
 
 ## Commands
 
@@ -41,4 +44,6 @@ See `DEMO-STEPS.md`.
 
 `postman-api-catalog-demo-orders`, `-payments`, `-users`
 
-Each supports: GET list, POST create, GET/PUT/PATCH/DELETE by id. Payments also has POST `/payments/refund`.
+OpenAPI source of truth: repo-root `orders.yaml`, `payments.yaml`, `users.yaml` (Postman sync). Deploy copies each to `apis/<api>/openapi.json` before `wrangler deploy`.
+
+Each supports: GET list, POST create, GET/PUT/PATCH/DELETE by id. Payments also has POST `/payments/refund` (POSTs webhook payload to `REFUND_WEBHOOK_URL` worker var, set from `.env` at deploy).

@@ -98,3 +98,21 @@ export async function maybeSimulateResponse(url, extra = {}) {
   }
   return null;
 }
+
+/** POST JSON payload to a webhook URL (no-op when url is empty). Returns true on 2xx. */
+export async function postWebhook(webhookUrl, payload) {
+  if (!webhookUrl) {
+    return false;
+  }
+
+  try {
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+}

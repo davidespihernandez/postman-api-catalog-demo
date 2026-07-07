@@ -8,5 +8,8 @@ values:
   - key: baseUrl
     value: https://postman-api-catalog-demo-payments.davidespi.workers.dev
     enabled: true
+  - key: refundWebhookUrl
+    value: https://7ygtn6bgtcbmv8k2oigij4xc0.webhook.pstmn.io/
+    enabled: true
 createdAt: 2026-07-03T16:45:09.000Z
 updatedAt: 2026-07-03T16:47:03.000Z

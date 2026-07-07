@@ -3,6 +3,7 @@ import {
   corsPreflight,
   json,
   maybeSimulateResponse,
+  postWebhook,
   readJson,
   withOpenApiServer,
 } from "../../shared/http.mjs";
@@ -26,7 +27,7 @@ function findPaymentIndex(id) {
 }
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     if (request.method === "OPTIONS") {
       return corsPreflight();
     }
@@ -82,6 +83,22 @@ export default {
       payment.status = "refunded";
       payment.refundReason = body.reason ?? "customer_request";
       payment.refundedAt = new Date().toISOString();
+
+      const webhookPayload = {
+        event: "payment.refunded",
+        occurredAt: payment.refundedAt,
+        payment: {
+          id: payment.id,
+          orderId: payment.orderId,
+          amount: payment.amount,
+          status: payment.status,
+          currency: payment.currency,
+          refundReason: payment.refundReason,
+          refundedAt: payment.refundedAt,
+        },
+      };
+      await postWebhook(env.REFUND_WEBHOOK_URL, webhookPayload);
+
       return json(payment);
     }
 

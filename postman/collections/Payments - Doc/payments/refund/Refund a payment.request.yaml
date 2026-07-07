@@ -28,5 +28,14 @@ body:
         "paymentId"
       ]
     }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('Status 200 OK', function () { pm.response.to.have.status(200); });
+      const body = pm.response.json();
+      pm.test('Payment refunded', function () { pm.expect(body.status).to.eql('refunded'); });
+      pm.test('Refund reason set', function () { pm.expect(body.refundReason).to.eql('customer_request'); });
+      pm.test('refundedAt present', function () { pm.expect(body.refundedAt).to.be.a('string'); });
+    language: text/javascript
 examples: ./.resources/Refund a payment.resources/examples
 order: 1000

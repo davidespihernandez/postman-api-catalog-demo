@@ -2,5 +2,7 @@ name = "postman-api-catalog-demo-payments"
 main = "src/worker.mjs"
 compatibility_date = "2024-11-01"
 
+# Optional: refund webhook URL — set REFUND_WEBHOOK_URL in .env; deploy passes it via --var
+
 [observability]
 enabled = true

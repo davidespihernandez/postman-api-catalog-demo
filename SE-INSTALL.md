@@ -66,37 +66,48 @@ If worker URLs change after redeploy, update the Postman environment.
 
 Create team workspace **API Catalog Demo**.
 
-### Import environment
+### Postman workspace layout
 
-- [ ] `postman/demo.environment.json`
-- [ ] Set `ordersApiUrl`, `paymentsApiUrl`, `usersApiUrl` from `./demo.sh urls`
+Sync or import from the `postman/` folder:
 
-### Import OpenAPI specs (generate documentation collections)
+```
+postman/
+├── collections/          Orders - QA, Payments - QA, Users - QA, * - Doc, …
+├── environments/         Production Orders / Payments / Users (+ Mock)
+└── globals/
+```
 
-For each API, import the live spec into the workspace:
+Use **Production** environments — each sets `baseUrl` to the matching worker URL from `./demo.sh urls`.
 
-| API | Spec URL |
-|-----|----------|
-| Orders | `{{ordersApiUrl}}/openapi.json` |
-| Payments | `{{paymentsApiUrl}}/openapi.json` |
-| Users | `{{usersApiUrl}}/openapi.json` |
+### Configure refund webhook on the Payments worker
 
-Postman generates documentation collections from the spec — no need to commit those to the repo.
+The Payments worker POSTs to your Postman webhook after a successful refund. Set the same URL in `.env` before deploy:
 
-### Import QA collections (three files)
+```bash
+REFUND_WEBHOOK_URL=https://7ygtn6bgtcbmv8k2oigij4xc0.webhook.pstmn.io/
+```
+
+(`refundWebhookUrl` is also in **Production Payments** environment for reference.)
+
+Redeploy Payments (or run full `./demo.sh deploy`) so the worker picks up the variable.
+
+### Collections in this repo
 
 | Collection | Purpose |
 |------------|---------|
-| `postman/orders-qa.collection.json` | Orders CRUD validation (7 requests, chained tests) |
-| `postman/payments-qa.collection.json` | Payments CRUD validation |
-| `postman/users-qa.collection.json` | Users CRUD validation |
+| `collections/Orders - QA` | Orders CRUD validation (7 requests, chained tests) |
+| `collections/Payments - QA` | Payments CRUD validation |
+| `collections/Users - QA` | Users CRUD validation |
+| `collections/Payments - Doc` | Generated docs; includes **Refund a payment** (triggers webhook via worker) |
+| `collections/Orders - Doc`, `Users - Doc` | Generated documentation from OpenAPI |
 
-Each QA collection runs in order: **Create → Get → List → PUT → PATCH → Delete → Get (404)**. Test scripts save `qaRecordId` between steps.
+QA collections run in order: **Create → Get → List → PUT → PATCH → Delete → Get (404)**.
 
 ### Verify before the demo
 
-- [ ] Run each **QA** collection — all tests green
-- [ ] OpenAPI specs imported and documentation collections generated
+- [ ] Production environment `baseUrl` values match `./demo.sh urls`
+- [ ] Run each **QA** collection — all green
+- [ ] Run **Payments - Doc → Refund a payment** — check Postman webhook receives payload
 
 ---
 

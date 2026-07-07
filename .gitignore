@@ -3,3 +3,4 @@ node_modules/
 .env
 .demo-state.env
 .DS_Store
+apis/*/openapi.json

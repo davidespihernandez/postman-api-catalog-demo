@@ -25,27 +25,22 @@ Repository: [github.com/davidespihernandez/postman-api-catalog-demo](https://git
 
 `setup-subdomain` must run in an **interactive terminal** (wrangler prompts for your subdomain). After that, `deploy` is non-interactive.
 
-Import environment + three QA collections from `postman/`. Import each API's OpenAPI spec from `{{*ApiUrl}}/openapi.json` to generate documentation collections. Full walkthrough: [SE-INSTALL.md](SE-INSTALL.md).
-
-## Demo commands
-
-| Command | Purpose |
-|---------|---------|
-| `./demo.sh setup` | Cloudflare login + npm install |
-| `./demo.sh setup-subdomain` | One-time `*.workers.dev` subdomain (interactive) |
-| `./demo.sh deploy` | Deploy all APIs + smoke test |
-| `./demo.sh reset` | Same as deploy (redeploy all) |
-| `./demo.sh smoke` | Health-check all workers |
-| `./demo.sh urls` | Print worker URLs |
+Sync the `postman/` folder into your workspace (collections, environments, globals). See [SE-INSTALL.md](SE-INSTALL.md).
 
 ## Postman assets
 
-| File | Purpose |
-|------|---------|
-| `*-qa.collection.json` | CRUD validation per API (create → get → list → PUT → PATCH → delete → 404) |
-| `demo.environment.json` | Worker base URLs |
+```
+postman/collections/     QA + Doc collections (native Postman format)
+postman/environments/    Production / Mock per API (`baseUrl`)
+postman/globals/
+```
 
-Documentation collections are **generated from OpenAPI** in Postman — not committed to this repo.
+| Collection | Purpose |
+|------------|---------|
+| `Orders - QA`, `Payments - QA`, `Users - QA` | CRUD validation |
+| `Payments - Doc` → Refund a payment | Refund + worker webhook demo |
+
+Set `REFUND_WEBHOOK_URL` in `.env` before deploy (see SE-INSTALL).
 
 ## Requirements
 

@@ -17,13 +17,21 @@ CONFIG="$(wrangler_config "$API")"
 NAME="$(worker_name "$API")"
 WRANGLER="$(wrangler_bin)"
 
+stage_openapi_for_deploy "$API"
+
 log "Deploying $(api_name "$API") ($NAME)..."
 
 DEPLOY_LOG="$(mktemp)"
 trap 'rm -f "$DEPLOY_LOG"' EXIT
 
+DEPLOY_ARGS=(deploy --config "$CONFIG")
+if [[ "$API" == "payments" && -n "${REFUND_WEBHOOK_URL:-}" ]]; then
+  DEPLOY_ARGS+=(--var "REFUND_WEBHOOK_URL:${REFUND_WEBHOOK_URL}")
+  log "Payments worker: REFUND_WEBHOOK_URL will be set from .env"
+fi
+
 set +e
-"$WRANGLER" deploy --config "$CONFIG" >"$DEPLOY_LOG" 2>&1
+"$WRANGLER" "${DEPLOY_ARGS[@]}" >"$DEPLOY_LOG" 2>&1
 DEPLOY_STATUS=$?
 set -e
 

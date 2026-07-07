@@ -70,21 +70,21 @@ Say: *“This is the inventory your platform team wishes they had — live, sear
 
 Say: *“We imported the OpenAPI spec to generate documentation. The QA collection validates every CRUD operation against the live API.”*
 
-Optional: show generated docs collection or `{{ordersApiUrl}}/openapi.json` in a browser tab you opened before the call.
+Optional: show generated docs collection or `{{baseUrl}}/openapi.json` (Production Orders environment) in a browser tab you opened before the call.
 
 ---
 
 ## Act 3 — QA tests (~4 min)
 
 1. Switch to **API Catalog Demo** workspace
-2. Open **Orders API — QA** collection
+2. Open **Orders - QA** collection
 3. **Run** collection (Collection Runner) — seven requests in sequence:
    - Create → Get → List → PUT → PATCH → Delete → Get (404)
 4. All tests pass — real HTTPS against Cloudflare
 
 Say: *“Each step chains to the next — create a record, verify it, update it, delete it, confirm it’s gone. The catalog ties this collection to Orders because the workspace is connected.”*
 
-Optional: quickly run **Payments API — QA** to show the same pattern across services.
+Optional: quickly run **Payments - QA** to show the same pattern across services.
 
 ---
 
