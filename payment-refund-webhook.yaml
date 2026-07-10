@@ -1,0 +1,193 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Payment Refund Webhook API",
+        "version": "1.0.0",
+        "description": "Inbound notification contract for payment refund events.\n\nThis API is **not** part of the Payments backend. After a successful `POST /payments/refund`, the Payments service asynchronously POSTs a `payment.refunded` event to this endpoint.\n\nTypical consumers: Postman webhook, billing reconciliation, fraud monitoring, or customer notification services."
+    },
+    "servers": [
+        {
+            "url": "https://7ygtn6bgtcbmv8k2oigij4xc0.webhook.pstmn.io",
+            "description": "Postman webhook (demo consumer)"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Events",
+            "description": "Refund notification events published by the Payments service"
+        }
+    ],
+    "paths": {
+        "/": {
+            "post": {
+                "tags": [
+                    "Events"
+                ],
+                "operationId": "receivePaymentRefunded",
+                "summary": "Receive payment refunded event",
+                "description": "Called by the Payments service when a refund is processed. Idempotent receivers should deduplicate on `payment.id` and `occurredAt`.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PaymentRefundedEvent"
+                            },
+                            "example": {
+                                "event": "payment.refunded",
+                                "occurredAt": "2026-07-07T15:30:00.000Z",
+                                "payment": {
+                                    "id": "pay-001",
+                                    "orderId": "ord-001",
+                                    "amount": 49.99,
+                                    "status": "refunded",
+                                    "currency": "USD",
+                                    "refundReason": "customer_request",
+                                    "refundedAt": "2026-07-07T15:30:00.000Z"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Event accepted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/WebhookAcknowledgment"
+                                },
+                                "example": {
+                                    "received": true
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid event payload",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "$ref": "#/components/responses/InternalServerError"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "PaymentRefundedEvent": {
+                "type": "object",
+                "required": [
+                    "event",
+                    "occurredAt",
+                    "payment"
+                ],
+                "properties": {
+                    "event": {
+                        "type": "string",
+                        "enum": [
+                            "payment.refunded"
+                        ],
+                        "example": "payment.refunded"
+                    },
+                    "occurredAt": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "ISO timestamp when the refund was processed"
+                    },
+                    "payment": {
+                        "$ref": "#/components/schemas/RefundedPayment"
+                    }
+                }
+            },
+            "RefundedPayment": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "orderId",
+                    "amount",
+                    "status",
+                    "currency",
+                    "refundReason",
+                    "refundedAt"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "pay-001"
+                    },
+                    "orderId": {
+                        "type": "string",
+                        "example": "ord-001"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "format": "double",
+                        "minimum": 0,
+                        "example": 49.99
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "refunded"
+                        ],
+                        "example": "refunded"
+                    },
+                    "currency": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 3,
+                        "example": "USD"
+                    },
+                    "refundReason": {
+                        "type": "string",
+                        "example": "customer_request"
+                    },
+                    "refundedAt": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "WebhookAcknowledgment": {
+                "type": "object",
+                "properties": {
+                    "received": {
+                        "type": "boolean",
+                        "example": true
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "required": [
+                    "error"
+                ],
+                "properties": {
+                    "error": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "responses": {
+            "InternalServerError": {
+                "description": "Consumer failed to process the event",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "$ref": "#/components/schemas/ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,33 @@
+$kind: http-request
+url: "{{baseUrl}}/"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "event": "payment.refunded",
+      "occurredAt": "2026-07-07T15:30:00.000Z",
+      "payment": {
+        "id": "pay-001",
+        "orderId": "ord-001",
+        "amount": 49.99,
+        "status": "refunded",
+        "currency": "USD",
+        "refundReason": "customer_request",
+        "refundedAt": "2026-07-07T15:30:00.000Z"
+      }
+    }
+  $type: |-
+    {
+      "type": "object",
+      "required": ["event", "occurredAt", "payment"],
+      "properties": {
+        "event": { "type": "string", "enum": ["payment.refunded"] },
+        "occurredAt": { "type": "string", "format": "date-time" },
+        "payment": { "type": "object" }
+      }
+    }
+order: 1000

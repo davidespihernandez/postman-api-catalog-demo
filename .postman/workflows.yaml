@@ -5,6 +5,10 @@
 # This file is declarative metadata and does not execute workflows by itself.
 workflows:
   syncSpecToCollection:
+    - spec: ../payment-refund-webhook.yaml
+      collection: ../postman/collections/Refund Webhook - Doc
+      options:
+        syncExamples: false
     - spec: ../users.yaml
       collection: ../postman/collections/Users - Doc
       options:
@@ -18,6 +22,10 @@ workflows:
       options:
         syncExamples: false
   syncCollectionToSpec:
+    - spec: ../payment-refund-webhook.yaml
+      collection: ../postman/collections/Refund Webhook - Doc
+      options:
+        syncExamples: false
     - spec: ../users.yaml
       collection: ../postman/collections/Users - Doc
       options:

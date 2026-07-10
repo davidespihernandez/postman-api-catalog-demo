@@ -44,6 +44,6 @@ See `DEMO-STEPS.md`.
 
 `postman-api-catalog-demo-orders`, `-payments`, `-users`
 
-OpenAPI source of truth: repo-root `orders.yaml`, `payments.yaml`, `users.yaml` (Postman sync). Deploy copies each to `apis/<api>/openapi.json` before `wrangler deploy`.
+OpenAPI source of truth: repo-root `orders.yaml`, `payments.yaml`, `users.yaml`, `payment-refund-webhook.yaml` (inbound consumer contract; not deployed as a worker). Deploy copies each backend spec to `apis/<api>/openapi.json` before `wrangler deploy`.
 
 Each supports: GET list, POST create, GET/PUT/PATCH/DELETE by id. Payments also has POST `/payments/refund` (POSTs webhook payload to `REFUND_WEBHOOK_URL` worker var, set from `.env` at deploy).

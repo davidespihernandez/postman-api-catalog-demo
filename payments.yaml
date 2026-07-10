@@ -18,7 +18,7 @@
         },
         {
             "name": "Refunds",
-            "description": "Refund operations"
+            "description": "Refund operations on the Payments backend (outbound webhook notifications are specified separately)"
         },
         {
             "name": "System",
@@ -318,6 +318,7 @@
                 ],
                 "operationId": "refundPayment",
                 "summary": "Refund a payment",
+                "description": "Refunds a payment by ID. On success, the Payments service asynchronously publishes a `payment.refunded` event to the external **Payment Refund Webhook API** (not part of this backend).",
                 "requestBody": {
                     "required": true,
                     "content": {

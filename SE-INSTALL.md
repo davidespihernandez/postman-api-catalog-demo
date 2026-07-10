@@ -79,6 +79,15 @@ postman/
 
 Use **Production** environments — each sets `baseUrl` to the matching worker URL from `./demo.sh urls`.
 
+### OpenAPI specs (repo root)
+
+| Spec | Role |
+|------|------|
+| `orders.yaml`, `payments.yaml`, `users.yaml` | Backend APIs (Cloudflare Workers) |
+| `payment-refund-webhook.yaml` | **Inbound** refund notification contract (Postman webhook / external consumer — not part of Payments backend) |
+
+Import or sync all four specs in the workspace. `payment-refund-webhook.yaml` generates **Refund Webhook - Doc** (use **Production Refund Webhook** environment for `baseUrl`).
+
 ### Configure refund webhook on the Payments worker
 
 The Payments worker POSTs to your Postman webhook after a successful refund. Set the same URL in `.env` before deploy:
@@ -98,7 +107,8 @@ Redeploy Payments (or run full `./demo.sh deploy`) so the worker picks up the va
 | `collections/Orders - QA` | Orders CRUD validation (7 requests, chained tests) |
 | `collections/Payments - QA` | Payments CRUD validation |
 | `collections/Users - QA` | Users CRUD validation |
-| `collections/Payments - Doc` | Generated docs; includes **Refund a payment** (triggers webhook via worker) |
+| `collections/Payments - Doc` | Payments docs; **Refund a payment** triggers outbound webhook |
+| `collections/Refund Webhook - Doc` | Inbound webhook contract (what Payments publishes) |
 | `collections/Orders - Doc`, `Users - Doc` | Generated documentation from OpenAPI |
 
 QA collections run in order: **Create → Get → List → PUT → PATCH → Delete → Get (404)**.
@@ -107,7 +117,7 @@ QA collections run in order: **Create → Get → List → PUT → PATCH → Del
 
 - [ ] Production environment `baseUrl` values match `./demo.sh urls`
 - [ ] Run each **QA** collection — all green
-- [ ] Run **Payments - Doc → Refund a payment** — check Postman webhook receives payload
+- [ ] Run **Payments - Doc → Refund a payment** — check Postman webhook receives payload matching **Refund Webhook - Doc** spec
 
 ---
 

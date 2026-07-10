@@ -31,14 +31,17 @@ Sync the `postman/` folder into your workspace (collections, environments, globa
 
 ```
 postman/collections/     QA + Doc collections (native Postman format)
-postman/environments/    Production / Mock per API (`baseUrl`)
+postman/environments/    Production / Mock per API + Refund Webhook
 postman/globals/
 ```
 
-| Collection | Purpose |
-|------------|---------|
+| Spec / collection | Purpose |
+|-------------------|---------|
+| `orders.yaml`, `payments.yaml`, `users.yaml` | Backend APIs (workers) |
+| `payment-refund-webhook.yaml` | Inbound refund event contract (external consumer) |
 | `Orders - QA`, `Payments - QA`, `Users - QA` | CRUD validation |
-| `Payments - Doc` → Refund a payment | Refund + worker webhook demo |
+| `Payments - Doc` → Refund a payment | Triggers outbound webhook from Payments worker |
+| `Refund Webhook - Doc` | Documents what the webhook receives |
 
 Set `REFUND_WEBHOOK_URL` in `.env` before deploy (see SE-INSTALL).
 
