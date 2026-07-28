@@ -2,6 +2,7 @@ workspace:
   id: 37875132-fcb4-4a68-ae65-2913c91fdd60
 localResources:
   specs:
+    - ../notifications.asyncapi.yaml
     - ../payment-refund-webhook.yaml
     - ../users.yaml
     - ../payments.yaml

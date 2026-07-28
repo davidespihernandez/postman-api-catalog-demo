@@ -13,6 +13,7 @@ Repository: [github.com/davidespihernandez/postman-api-catalog-demo](https://git
 |-----|----------|
 | [SE-INSTALL.md](SE-INSTALL.md) | SE one-time setup (includes deploy) |
 | [DEMO-STEPS.md](DEMO-STEPS.md) | Customer demo (Postman app only) |
+| [CI-CD.md](CI-CD.md) | GitHub Actions + Postman CLI (Orders QA) |
 
 ## Setup (before the demo)
 
@@ -31,20 +32,21 @@ Sync the `postman/` folder into your workspace (collections, environments, globa
 
 ```
 postman/collections/     QA + Doc collections (native Postman format)
-postman/environments/    Production / Mock per API + Refund Webhook
+postman/environments/    Production / Mock per API + MQTT notifications
 postman/globals/
 ```
 
 | Spec / collection | Purpose |
 |-------------------|---------|
-| `orders.yaml`, `payments.yaml`, `users.yaml` | Backend APIs (workers) |
-| `payment-refund-webhook.yaml` | Inbound refund event contract (external consumer) |
+| `orders.yaml`, `payments.yaml`, `users.yaml` | Backend REST APIs (workers) |
+| `payment-refund-webhook.yaml` | Inbound refund event contract |
+| `notifications.asyncapi.yaml` | MQTT async message contract |
 | `Orders - QA`, `Payments - QA`, `Users - QA` | CRUD validation |
-| `Payments - Doc` → Refund a payment | Triggers outbound webhook from Payments worker |
-| `Refund Webhook - Doc` | Documents what the webhook receives |
+| `Payments - Doc` → Refund a payment | REST → webhook (sync async) |
+| Manual **MQTT** collection request | Publish directly to broker topic (you create) |
 
-Set `REFUND_WEBHOOK_URL` in `.env` before deploy (see SE-INSTALL).
+Set `REFUND_WEBHOOK_URL` in `.env` before deploy. For MQTT webhook proof, run `./demo.sh mqtt-bridge` (see SE-INSTALL).
 
 ## Requirements
 
-Node.js 18+, curl, Cloudflare (free), Postman Enterprise with API Catalog.
+Node.js 18+, curl, Cloudflare (free), Postman Enterprise with API Catalog, Postman desktop app (for MQTT requests).

@@ -1,0 +1,30 @@
+# Run Orders - QA collection via Postman CLI (cloud collection + environment).
+# Setup: see CI-CD.md — add POSTMAN_API_KEY secret, verify environment baseUrl in Postman.
+
+name: Orders API — QA tests
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # manual run for live customer demo
+
+env:
+  # Orders - QA collection (API Catalog Demo workspace)
+  POSTMAN_COLLECTION_ID: 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
+  # Production Orders environment (baseUrl → deployed Orders worker)
+  POSTMAN_ENVIRONMENT_ID: 53522859-60759898-5954-4a4a-8ed6-645707a414fa
+
+jobs:
+  orders-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      - name: Run Orders QA collection
+        run: |
+          postman collection run "${{ env.POSTMAN_COLLECTION_ID }}" \
+            -e "${{ env.POSTMAN_ENVIRONMENT_ID }}"

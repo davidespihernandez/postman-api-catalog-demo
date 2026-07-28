@@ -13,10 +13,14 @@
     "deploy:payments": "wrangler deploy --config apis/payments/wrangler.toml",
     "deploy:users": "wrangler deploy --config apis/users/wrangler.toml",
     "delete:payments": "wrangler delete --config apis/payments/wrangler.toml --force",
-    "demo": "./demo.sh"
+    "demo": "./demo.sh",
+    "mqtt-bridge": "node scripts/mqtt-webhook-bridge.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.14.0"
+  },
+  "dependencies": {
+    "mqtt": "^5.10.0"
   },
   "engines": {
     "node": ">=18"

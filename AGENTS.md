@@ -11,7 +11,9 @@ API Catalog demo: pre-deployed Cloudflare Workers (full CRUD) + Postman workspac
 ```
 ./demo.sh setup → ./demo.sh setup-subdomain (once) → ./demo.sh deploy
 Cloudflare: Orders, Payments, Users (*.workers.dev) — full CRUD + /openapi.json
-Postman workspace → 3 QA collections + generated docs from OpenAPI import
+Async: MQTT broker (HiveMQ public) — Postman MQTT request publishes directly to topic
+Optional: ./demo.sh mqtt-bridge → NOTIFICATION_WEBHOOK_URL
+Postman workspace → QA collections + OpenAPI/AsyncAPI specs
 API Catalog ← Manual import → Postman Workspace
 ```
 
@@ -21,29 +23,29 @@ Native Postman layout synced from the repo:
 
 - `collections/Orders - QA`, `Payments - QA`, `Users - QA` — CRUD validation
 - `collections/* - Doc` — documentation (includes **Payments → Refund a payment** for webhook demo)
-- `environments/Production *` — `baseUrl` per API; Payments also has `refundWebhookUrl`
+- `environments/Production *` — `baseUrl` per API; Notifications uses `mqttBrokerUrl` + `mqttTopic`
 
-Worker webhook: set `REFUND_WEBHOOK_URL` in `.env` before deploy (same URL as Postman webhook).
+Webhooks: `REFUND_WEBHOOK_URL` in `.env` before deploy; `NOTIFICATION_WEBHOOK_URL` for optional mqtt-bridge.
 
 ## Commands
 
-`setup`, `setup-subdomain` (one-time interactive workers.dev registration), `deploy`, `reset` (= deploy all), `add`, `smoke`, `urls`
+`setup`, `setup-subdomain`, `deploy`, `reset`, `add`, `smoke`, `urls`, `mqtt-bridge`
 
 **Setup order:** `setup` → `setup-subdomain` → `deploy`. Deploy alone fails on new Cloudflare accounts without a workers.dev subdomain.
 
 ## Demo (Postman only)
 
-1. Catalog portfolio — 3 integrated services  
+1. Catalog portfolio — integrated services  
 2. Service deep-dive — Overview / Development / Test  
 3. Run *QA collection (CRUD flow)  
-4. Test tab — metrics from QA run  
+4. Async: MQTT publish to broker (separate from REST refund webhook demo)  
 
-See `DEMO-STEPS.md`.
+See `DEMO-STEPS.md` and `SE-INSTALL.md`.
 
 ## Workers
 
 `postman-api-catalog-demo-orders`, `-payments`, `-users`
 
-OpenAPI source of truth: repo-root `orders.yaml`, `payments.yaml`, `users.yaml`, `payment-refund-webhook.yaml` (inbound consumer contract; not deployed as a worker). Deploy copies each backend spec to `apis/<api>/openapi.json` before `wrangler deploy`.
+OpenAPI: `orders.yaml`, `payments.yaml`, `users.yaml`, `payment-refund-webhook.yaml`. AsyncAPI: `notifications.asyncapi.yaml` (MQTT — no worker). Deploy copies REST specs to `apis/<api>/openapi.json`.
 
-Each supports: GET list, POST create, GET/PUT/PATCH/DELETE by id. Payments also has POST `/payments/refund` (POSTs webhook payload to `REFUND_WEBHOOK_URL` worker var, set from `.env` at deploy).
+Payments: `POST /payments/refund` → `REFUND_WEBHOOK_URL`. Notifications: Postman **MQTT** → broker topic; optional `mqtt-bridge` → `NOTIFICATION_WEBHOOK_URL`.

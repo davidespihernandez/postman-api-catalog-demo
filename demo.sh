@@ -13,6 +13,7 @@ Usage:
   ./demo.sh setup              One-time Cloudflare login + npm install
   ./demo.sh setup-subdomain    One-time workers.dev subdomain (interactive)
   ./demo.sh deploy             Deploy all APIs (orders, payments, users) + smoke test
+  ./demo.sh mqtt-bridge        MQTT consumer → Postman webhook (run before async demo)
   ./demo.sh reset              Same as deploy (redeploy all workers)
   ./demo.sh add <api>          Deploy a single API + smoke test
   ./demo.sh smoke [api|all]    Health checks
@@ -87,6 +88,12 @@ case "$cmd" in
     else
       log "No .demo-state.env yet. Run ./demo.sh deploy first."
     fi
+    ;;
+  mqtt-bridge)
+    require_cmd node
+    (cd "$ROOT_DIR" && npm install)
+    load_env
+    exec node "$ROOT_DIR/scripts/mqtt-webhook-bridge.mjs"
     ;;
   -h | --help | help | "")
     usage

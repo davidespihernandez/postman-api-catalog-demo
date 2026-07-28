@@ -1,0 +1,13 @@
+name: Production Notifications
+values:
+  - key: mqttBrokerUrl
+    value: mqtt://broker.hivemq.com:1883
+    enabled: true
+  - key: mqttTopic
+    value: postman-api-catalog-demo/notifications
+    enabled: true
+  - key: notificationWebhookUrl
+    value: https://YOUR-NOTIFICATION-WEBHOOK.webhook.pstmn.io/
+    enabled: true
+createdAt: 2026-07-10T00:00:00.000Z
+updatedAt: 2026-07-10T00:00:00.000Z

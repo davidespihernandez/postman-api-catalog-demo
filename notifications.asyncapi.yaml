@@ -1,0 +1,143 @@
+asyncapi: 3.0.0
+info:
+  title: Notifications API
+  version: 1.0.0
+  description: |
+    Async notification messaging for the API Catalog demo.
+
+    **Publish from Postman (MQTT request type — not HTTP):**
+    1. New request → **MQTT**
+    2. Connect to `{{mqttBrokerUrl}}`
+    3. Subscribe to `{{mqttTopic}}` (see incoming messages in the response stream)
+    4. Publish a JSON `notification` message to the same topic
+
+    **Optional consumer proof:** run `./demo.sh mqtt-bridge` before the demo so processed
+    messages are forwarded to your Postman webhook as `notification.processed`.
+
+defaultContentType: application/json
+
+servers:
+  hivemq-public:
+    host: broker.hivemq.com:1883
+    protocol: mqtt
+    description: Public HiveMQ broker (demo — no auth required)
+
+channels:
+  notifications:
+    address: postman-api-catalog-demo/notifications
+    description: Notification messages published by producers and consumed by downstream services
+    messages:
+      notificationMessage:
+        $ref: '#/components/messages/NotificationMessage'
+
+operations:
+  publishNotification:
+    action: send
+    channel:
+      $ref: '#/channels/notifications'
+    title: Publish notification message to the broker
+    summary: Publish notification message
+    description: Use a Postman **MQTT** request (not HTTP) to publish directly to this topic.
+    messages:
+      - $ref: '#/channels/notifications/messages/notificationMessage'
+    bindings:
+      mqtt:
+        qos: 1
+        retain: false
+        bindingVersion: '0.2.0'
+
+  receiveNotification:
+    action: receive
+    channel:
+      $ref: '#/channels/notifications'
+    title: Consume notification message from the broker
+    summary: Consume notification message
+    description: Subscribe in Postman to verify delivery, or run the mqtt-bridge consumer for webhook proof.
+    messages:
+      - $ref: '#/channels/notifications/messages/notificationMessage'
+    bindings:
+      mqtt:
+        qos: 1
+        bindingVersion: '0.2.0'
+
+components:
+  messages:
+    NotificationMessage:
+      name: notification
+      title: Notification
+      summary: A notification to deliver to an end user or system
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - type
+          - id
+          - message
+          - channel
+          - publishedAt
+        properties:
+          type:
+            type: string
+            enum:
+              - notification
+            examples:
+              - notification
+          id:
+            type: string
+            examples:
+              - notif-demo-001
+          message:
+            type: string
+            examples:
+              - Your order has shipped
+          channel:
+            type: string
+            examples:
+              - email
+          recipient:
+            type: string
+            examples:
+              - alice@example.com
+          metadata:
+            type: object
+            additionalProperties: true
+            examples:
+              - orderId: ord-001
+          publishedAt:
+            type: string
+            format: date-time
+            examples:
+              - '2026-07-10T10:00:00.000Z'
+      examples:
+        - name: orderShipped
+          payload:
+            type: notification
+            id: notif-demo-001
+            message: Your order has shipped
+            channel: email
+            recipient: alice@example.com
+            metadata:
+              orderId: ord-001
+            publishedAt: '2026-07-10T10:00:00.000Z'
+
+    NotificationProcessedEvent:
+      name: notification.processed
+      title: Notification processed
+      summary: Emitted by the mqtt-bridge consumer to the Postman webhook
+      contentType: application/json
+      payload:
+        type: object
+        required:
+          - event
+          - occurredAt
+          - notification
+        properties:
+          event:
+            type: string
+            enum:
+              - notification.processed
+          occurredAt:
+            type: string
+            format: date-time
+          notification:
+            type: object
