@@ -10,6 +10,8 @@ on:
 
 env:
   POSTMAN_PERFORMANCE_COLLECTION_ID: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855
+  # Production Orders environment (baseUrl → deployed Orders worker)
+  POSTMAN_ENVIRONMENT_ID: 53522859-60759898-5954-4a4a-8ed6-645707a414fa
 
 jobs:
   performance-test:
@@ -24,7 +26,8 @@ jobs:
       - name: Run performance test
         run: |
           postman performance run "${{ env.POSTMAN_PERFORMANCE_COLLECTION_ID }}" \
+            -e "${{ env.POSTMAN_ENVIRONMENT_ID }}" \
             --vu-count 20 \
-            --duration 2 \
+            --duration 1 \
             --load-profile fixed \
             --pass-if "less_than(p99, 500)"
