@@ -1,0 +1,30 @@
+# Run Postman performance test via CLI (cloud collection).
+# Setup: see CI-CD.md — add POSTMAN_API_KEY secret.
+
+name: API — Performance test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  POSTMAN_PERFORMANCE_COLLECTION_ID: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      - name: Run performance test
+        run: |
+          postman performance run "${{ env.POSTMAN_PERFORMANCE_COLLECTION_ID }}" \
+            --vu-count 20 \
+            --duration 2 \
+            --load-profile fixed \
+            --pass-if "less_than(p99, 500)"

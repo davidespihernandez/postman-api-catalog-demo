@@ -23,4 +23,4 @@ jobs:
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
 
       - name: Lint Orders spec
-        run: postman spec lint "${{ env.POSTMAN_SPEC_ID }}"
+        run: postman spec lint "${{ env.POSTMAN_SPEC_ID }}" --report-events
