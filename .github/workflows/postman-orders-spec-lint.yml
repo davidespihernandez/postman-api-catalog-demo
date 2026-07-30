@@ -1,0 +1,26 @@
+# Lint Orders OpenAPI spec via Postman CLI (cloud spec in Spec Hub).
+# Setup: see CI-CD.md — add POSTMAN_API_KEY secret.
+
+name: Orders API — Spec lint
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  # Orders OpenAPI spec (API Catalog Demo workspace)
+  POSTMAN_SPEC_ID: fff8186c-d957-4a94-b325-e17b033f74e1
+
+jobs:
+  orders-spec-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      - name: Lint Orders spec
+        run: postman spec lint "${{ env.POSTMAN_SPEC_ID }}"
