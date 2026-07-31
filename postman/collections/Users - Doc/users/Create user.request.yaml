@@ -12,32 +12,6 @@ body:
       "email": "qa.test@example.com",
       "role": "customer"
     }
-  $type: |-
-    {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "example": "QA Test User"
-        },
-        "email": {
-          "type": "string",
-          "example": "qa.test@example.com",
-          "format": "email"
-        },
-        "role": {
-          "allOf": [
-            {
-              "type": "string",
-              "example": "customer"
-            }
-          ]
-        }
-      },
-      "required": [
-        "name",
-        "email"
-      ]
-    }
+settings: {}
 examples: ./.resources/Create user.resources/examples
 order: 3000

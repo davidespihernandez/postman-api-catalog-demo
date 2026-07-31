@@ -7,3 +7,4 @@ description: |-
   - status or error: HTTP status code to return (e.g. 500); error=true also returns 500
 variables:
   baseUrl: https://postman-api-catalog-demo-orders.davidespi.workers.dev
+  secret: ""

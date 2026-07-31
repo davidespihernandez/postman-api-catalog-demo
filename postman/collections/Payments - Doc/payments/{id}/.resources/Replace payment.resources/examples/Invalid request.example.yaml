@@ -30,21 +30,4 @@ response:
         "error": "Payment not found",
         "service": "payments-api"
       }
-    $type: |-
-      {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "Payment not found"
-          },
-          "service": {
-            "type": "string",
-            "example": "payments-api"
-          }
-        },
-        "required": [
-          "error"
-        ]
-      }
 order: 2000

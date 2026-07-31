@@ -3,5 +3,6 @@ url: "{{baseUrl}}/openapi.json"
 method: GET
 headers:
   Accept: application/json
+settings: {}
 examples: ./.resources/OpenAPI specification.resources/examples
 order: 1000

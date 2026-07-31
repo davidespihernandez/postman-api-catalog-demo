@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/orders/{{order_id}}"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      const orderId = pm.iterationData.get("order_id");
+      const expected = pm.iterationData.get("expected");
+      const responseCode = pm.response.code
+      console.log(orderId);
+      console.log(expected);
+      console.log(responseCode);
+      pm.test("Expected response code is returned", function () {
+          pm.expect(responseCode.toString()).to.eql(expected);
+      });
+    language: text/javascript
+order: 1000

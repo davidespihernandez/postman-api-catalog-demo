@@ -20,8 +20,7 @@ response:
           "description": "string"
         },
         "paths": {
-          "key_0": 5307.161398901075,
-          "key_1": 4345.400855783415
+          "key_0": 5307.161398901075
         },
         "servers": [
           {
@@ -36,62 +35,5 @@ response:
         "components": {
           "key_0": "string"
         }
-      }
-    $type: |-
-      {
-        "description": "OpenAPI 3.0 document",
-        "type": "object",
-        "properties": {
-          "openapi": {
-            "type": "string",
-            "example": "3.0.3"
-          },
-          "info": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "example": "Orders API"
-              },
-              "version": {
-                "type": "string",
-                "example": "1.0.0"
-              },
-              "description": {
-                "type": "string"
-              }
-            },
-            "required": [
-              "title",
-              "version"
-            ]
-          },
-          "servers": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "url": {
-                  "type": "string",
-                  "format": "uri"
-                },
-                "description": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          "paths": {
-            "type": "object"
-          },
-          "components": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "openapi",
-          "info",
-          "paths"
-        ]
       }
 order: 1000

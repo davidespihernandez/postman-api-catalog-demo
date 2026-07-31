@@ -19,21 +19,4 @@ response:
       {
         "error": "Order not found"
       }
-    $type: |-
-      {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "Order not found"
-          },
-          "service": {
-            "type": "string",
-            "example": "orders-api"
-          }
-        },
-        "required": [
-          "error"
-        ]
-      }
 order: 2000

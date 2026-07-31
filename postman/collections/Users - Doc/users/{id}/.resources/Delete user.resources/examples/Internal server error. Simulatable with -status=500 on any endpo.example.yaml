@@ -24,32 +24,4 @@ response:
         "service": "users-api",
         "delayMs": 9930
       }
-    $type: |-
-      {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "Simulated response for API Catalog demo"
-          },
-          "status": {
-            "type": "integer",
-            "example": 500
-          },
-          "simulated": {
-            "type": "boolean",
-            "example": true
-          },
-          "service": {
-            "type": "string",
-            "example": "users-api"
-          },
-          "delayMs": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "error"
-        ]
-      }
 order: 3000

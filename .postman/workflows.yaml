@@ -13,14 +13,17 @@ workflows:
       collection: ../postman/collections/Users - Doc
       options:
         syncExamples: false
+        deleteOrphanedRequests: false
     - spec: ../payments.yaml
       collection: ../postman/collections/Payments - Doc
       options:
         syncExamples: false
+        deleteOrphanedRequests: false
     - spec: ../orders.yaml
       collection: ../postman/collections/Orders - Doc
       options:
         syncExamples: false
+        deleteOrphanedRequests: false
   syncCollectionToSpec:
     - spec: ../payment-refund-webhook.yaml
       collection: ../postman/collections/Refund Webhook - Doc
@@ -30,11 +33,14 @@ workflows:
       collection: ../postman/collections/Users - Doc
       options:
         syncExamples: false
+        deleteOrphanedRequests: false
     - spec: ../payments.yaml
       collection: ../postman/collections/Payments - Doc
       options:
         syncExamples: false
+        deleteOrphanedRequests: false
     - spec: ../orders.yaml
       collection: ../postman/collections/Orders - Doc
       options:
         syncExamples: false
+        deleteOrphanedRequests: false

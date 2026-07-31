@@ -1,7 +1,7 @@
 owner: "53522859"
 team: "14577123"
 lastUpdatedBy: "53522859"
-lastRevision: 1783097135000
+lastRevision: 1783496467000
 name: Production Orders
 color: null
 values:
@@ -9,4 +9,4 @@ values:
     value: https://postman-api-catalog-demo-orders.davidespi.workers.dev
     enabled: true
 createdAt: 2026-07-03T11:11:30.000Z
-updatedAt: 2026-07-03T16:45:35.000Z
+updatedAt: 2026-07-08T07:41:07.000Z

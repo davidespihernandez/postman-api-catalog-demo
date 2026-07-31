@@ -1,0 +1,17 @@
+$kind: mqtt-request
+description: ""
+url: "{{mqttBrokerUrl}}"
+version: 5
+topics:
+  - name: "{{mqttTopic}}"
+    description: ""
+    qos: 0
+    subscribe: true
+    settings: {}
+lastWill:
+  payload: ""
+  topic: ""
+properties: {}
+settings: {}
+messages: ./.resources/Test notifications.resources/messages
+order: 1000

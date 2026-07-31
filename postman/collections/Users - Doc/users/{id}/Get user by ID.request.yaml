@@ -7,18 +7,6 @@ pathVariables:
   - key: id
     value: usr-001
     description: User identifier
-    $type: |-
-      {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "string",
-            "example": "usr-001"
-          }
-        },
-        "required": [
-          "value"
-        ]
-      }
+settings: {}
 examples: ./.resources/Get user by ID.resources/examples
 order: 1000

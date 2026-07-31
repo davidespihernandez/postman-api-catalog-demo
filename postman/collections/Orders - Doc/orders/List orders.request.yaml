@@ -3,5 +3,6 @@ url: "{{baseUrl}}/orders"
 method: GET
 headers:
   Accept: application/json
+settings: {}
 examples: ./.resources/List orders.resources/examples
 order: 2000

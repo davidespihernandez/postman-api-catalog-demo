@@ -1,0 +1,19 @@
+$kind: mqtt-message
+content: |-
+  {
+    "type": "notification",
+    "id": "notif-demo-001",
+    "message": "Your order has shipped",
+    "channel": "email",
+    "recipient": "alice@example.com",
+    "metadata": {
+      "orderId": "ord-001"
+    },
+    "publishedAt": "2026-07-10T10:00:00.000Z"
+  }
+topic: "{{mqttTopic}}"
+qos: 0
+retain: false
+contentType: json
+properties: {}
+order: 1000

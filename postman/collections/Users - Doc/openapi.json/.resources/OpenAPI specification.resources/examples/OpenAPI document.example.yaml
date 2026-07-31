@@ -12,8 +12,4 @@ response:
   body:
     type: json
     content: "{}"
-    $type: |-
-      {
-        "type": "object"
-      }
 order: 1000

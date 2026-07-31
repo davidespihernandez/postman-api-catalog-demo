@@ -1,0 +1,15 @@
+owner: "53522859"
+team: "14577123"
+lastUpdatedBy: "53522859"
+lastRevision: 1783930896000
+name: Notifications
+color: null
+values:
+  - key: mqttBrokerUrl
+    value: mqtt://broker.hivemq.com:1883
+    enabled: true
+  - key: mqttTopic
+    value: postman-api-catalog-demo/notifications
+    enabled: true
+createdAt: 2026-07-13T08:16:04.000Z
+updatedAt: 2026-07-13T08:21:36.000Z

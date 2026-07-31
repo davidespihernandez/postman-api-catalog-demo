@@ -34,32 +34,4 @@ response:
         "service": "payments-api",
         "delayMs": 6350
       }
-    $type: |-
-      {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "Simulated response for API Catalog demo"
-          },
-          "status": {
-            "type": "integer",
-            "example": 500
-          },
-          "simulated": {
-            "type": "boolean",
-            "example": true
-          },
-          "service": {
-            "type": "string",
-            "example": "payments-api"
-          },
-          "delayMs": {
-            "type": "integer"
-          }
-        },
-        "required": [
-          "error"
-        ]
-      }
 order: 3000

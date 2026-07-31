@@ -1,0 +1,18 @@
+type: dataset
+name: Orders get detail test
+id: 9ac3844b-d233-497e-b2b3-2f0bc0f6f0e2
+sources:
+  - from: embedded_datasource
+    datasource:
+      name: source_orders_test
+      id: 3dd603c3-313c-4ac5-9d89-085e5ea798bd
+      format: csv
+      location:
+        type: local_filesystem
+        value: /Users/david.espi@postman.com/Documents/code/orders_test.csv
+views:
+  - from: embedded_view
+    view:
+      name: source_orders_test_default_view
+      id: 6813d7e2-1675-4b35-9b14-e645690167b8
+      query: SELECT * FROM source_orders_test

@@ -7,18 +7,6 @@ pathVariables:
   - key: id
     value: pay-001
     description: Payment identifier
-    $type: |-
-      {
-        "type": "object",
-        "properties": {
-          "value": {
-            "type": "string",
-            "example": "pay-001"
-          }
-        },
-        "required": [
-          "value"
-        ]
-      }
+settings: {}
 examples: ./.resources/Delete payment.resources/examples
 order: 4000

@@ -1,7 +1,7 @@
 owner: "53522859"
 team: "14577123"
 lastUpdatedBy: "53522859"
-lastRevision: 1783097223000
+lastRevision: 1783496467000
 name: Production Payments
 color: null
 values:
@@ -12,4 +12,4 @@ values:
     value: https://7ygtn6bgtcbmv8k2oigij4xc0.webhook.pstmn.io/
     enabled: true
 createdAt: 2026-07-03T16:45:09.000Z
-updatedAt: 2026-07-03T16:47:03.000Z
+updatedAt: 2026-07-08T07:41:07.000Z

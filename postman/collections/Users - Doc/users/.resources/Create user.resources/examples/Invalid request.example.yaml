@@ -25,21 +25,4 @@ response:
         "error": "User not found",
         "service": "users-api"
       }
-    $type: |-
-      {
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "User not found"
-          },
-          "service": {
-            "type": "string",
-            "example": "users-api"
-          }
-        },
-        "required": [
-          "error"
-        ]
-      }
 order: 2000

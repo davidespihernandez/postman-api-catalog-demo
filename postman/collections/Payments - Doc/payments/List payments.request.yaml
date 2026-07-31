@@ -3,5 +3,10 @@ url: "{{baseUrl}}/payments"
 method: GET
 headers:
   Accept: application/json
+queryParams:
+  - key: status
+    value: "500"
+    disabled: true
+settings: {}
 examples: ./.resources/List payments.resources/examples
 order: 3000

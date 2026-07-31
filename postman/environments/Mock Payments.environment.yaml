@@ -1,7 +1,7 @@
 owner: "53522859"
 team: "14577123"
 lastUpdatedBy: "53522859"
-lastRevision: 1783348758000
+lastRevision: 1783496467000
 name: Mock Payments
 color: null
 values:
@@ -9,4 +9,4 @@ values:
     value: https://84459dc1-b4f9-4e7b-b214-b7e8cb76f8d4.mock.pstmn.io
     enabled: true
 createdAt: 2026-07-03T16:47:31.000Z
-updatedAt: 2026-07-06T14:39:18.000Z
+updatedAt: 2026-07-08T07:41:07.000Z
