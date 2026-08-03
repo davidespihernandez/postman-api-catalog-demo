@@ -8,6 +8,8 @@ source "$ROOT_DIR/scripts/lib.sh"
 usage() {
   cat <<'EOF'
 Postman API Catalog demo — Cloudflare deploy helper
+(For SELF-HOSTED runtime health via the Insights agent, this is NOT the script —
+ see runtime-vm/deploy-runtime.sh and ORACLE-INSIGHTS.md.)
 
 Usage:
   ./demo.sh setup              One-time Cloudflare login + npm install

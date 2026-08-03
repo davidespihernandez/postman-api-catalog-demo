@@ -3,6 +3,7 @@ import {
   corsPreflight,
   json,
   maybeSimulateResponse,
+  noContent,
   readJson,
   withOpenApiServer,
 } from "../../shared/http.mjs";
@@ -121,7 +122,7 @@ export default {
           return json({ error: "Order not found" }, 404);
         }
         orders.splice(index, 1);
-        return new Response(null, { status: 204 });
+        return noContent();
       }
     }
 

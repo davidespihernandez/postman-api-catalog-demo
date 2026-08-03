@@ -1,0 +1,42 @@
+# Run the Orders - QA collection against the SELF-HOSTED Oracle VM backend.
+# Parallel to postman-orders-qa.yml (which targets Cloudflare) — do NOT replace it.
+# Purpose: generate real traffic against the VM so the Insights agent populates
+# Runtime Health in the API Catalog, and prove the same tests pass on both backends.
+#
+# Setup (see ORACLE-INSIGHTS.md):
+#   1. Import postman/environments/Oracle Orders.environment.yaml into Postman and set its
+#      baseUrl to https://orders.<your-vm-hostname>.
+#   2. Copy that environment's ID from Postman and paste it below as POSTMAN_ENVIRONMENT_ID.
+#   3. Ensure the POSTMAN_API_KEY secret already exists (shared with the Cloudflare workflow).
+
+name: Orders API — QA tests (Oracle VM)
+
+on:
+  workflow_dispatch: # manual only for now
+  # ⚠️ DISABLED until the Oracle Orders environment exists in Postman cloud and its ID is set
+  # below (POSTMAN_ENVIRONMENT_ID). Re-enable these once wired up:
+  # schedule:
+  #   - cron: "*/30 * * * *" # steady traffic so Runtime Health stays fresh
+  # push:
+  #   branches: [main]
+
+env:
+  # Same Orders - QA collection as the Cloudflare workflow.
+  POSTMAN_COLLECTION_ID: 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
+  # Oracle Orders environment (baseUrl -> https://orders.<vm-hostname>). FILL THIS IN.
+  POSTMAN_ENVIRONMENT_ID: CHANGE-ME-oracle-orders-env-id
+
+jobs:
+  orders-qa-oracle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      - name: Run Orders QA collection against the Oracle VM
+        run: |
+          postman collection run "${{ env.POSTMAN_COLLECTION_ID }}" \
+            -e "${{ env.POSTMAN_ENVIRONMENT_ID }}"

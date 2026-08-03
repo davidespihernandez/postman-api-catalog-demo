@@ -1,8 +1,15 @@
-# Runtime Health via Postman Insights (Oracle Cloud Free VM)
+# Self-hosted test API on Oracle + Postman Insights (for the API Catalog)
 
-How to light up the **Runtime Health** panel in the API Catalog (P95 latency, availability,
-latency regression, 4xx error rate). These metrics are populated **only** by the Postman
-Insights agent observing live traffic — there is no CLI/CI path for them.
+**Goal:** stand up a test API on a free Oracle VM — a twin of the Cloudflare one — where we *can*
+run the **Postman Insights agent**, so we can demo and test the **Insights-powered parts of the
+API Catalog** that Cloudflare Workers can't feed:
+
+- **Runtime Health** panel — P95 latency, availability, latency regression, 4xx error rate
+- **Observed endpoints** and the **Top 5 Highest Error Rate Endpoints** ("Observed via Insights Agent")
+- Per-endpoint error/latency data that Agent Mode can query
+
+All of the above are populated **only** by the Insights agent observing live traffic — there is no
+CLI/CI path for them, and the agent can't run on serverless Cloudflare Workers. Hence the VM.
 
 > One-time setup for Solutions Engineers. Do this **before** a customer demo, not during it.
 
@@ -26,6 +33,19 @@ Same collections, same tests — only `baseUrl` changes. This makes a great demo
 *"same API contract and test suite, Cloudflare edge vs. self-hosted VM, one dropdown."* The
 Insights agent only observes the Oracle VM, so Runtime Health reflects traffic sent to the
 **Oracle** environment (or a scheduled synthetic run against it).
+
+## Two scripts — don't confuse them
+
+There are two deploy scripts for two different backends. They are independent and both stay live:
+
+| | `demo.sh` | `runtime-vm/deploy-runtime.sh` |
+|---|-----------|-------------------------------|
+| **Backend** | Cloudflare Workers | Self-hosted copy on the Oracle VM |
+| **Where you run it** | Your laptop | On the Oracle VM (Linux) |
+| **Can run the Insights agent?** | No — serverless, no host to attach to | Yes — that's the whole point |
+| **Insights-powered catalog features** | Stay empty (Runtime Health N/A, no observed endpoints) | Populated — Runtime Health, observed endpoints, per-endpoint error/latency |
+| **Purpose** | The standard API Catalog demo | A twin API where Insights *can* run, to demo/test the Insights side of the catalog |
+| **This doc** | not covered here | ← what this doc sets up |
 
 ---
 
@@ -58,8 +78,8 @@ GitHub Actions ──HTTPS──▶ Caddy (:443, auto Let's Encrypt)
 Terminating TLS at Caddy and letting the agent sniff the **plaintext** hop behind it means we
 avoid eBPF and kernel-version headaches entirely.
 
-This document covers **Part 1 — provisioning the VM**. Part 2 (the Docker/Caddy/agent stack that
-runs on it) is tracked separately and dropped onto the box once it exists.
+This document covers **Part 1 — provisioning the VM**. Part 2 (the backend + Caddy + agent stack
+that runs on it, all native — no Docker) lives in [`runtime-vm/`](runtime-vm/).
 
 ---
 
@@ -72,7 +92,7 @@ runs on it) is tracked separately and dropped onto the box once it exists.
 | Access | SSH key-based login as `ubuntu` |
 | Networking | Public IPv4, ingress open on 22 / 80 / 443 |
 | Hostname | A free DNS name (DuckDNS or nip.io) → your public IP, so Caddy can get a TLS cert |
-| Software | Docker Engine + Compose plugin |
+| Software | Node.js, Caddy, Postman Insights agent (all installed by `deploy-runtime.sh` — no Docker) |
 
 **Prerequisites:** a valid credit card (Oracle uses it for identity verification — a temporary
 hold, no charge; prepaid/virtual cards are rejected), a phone number, and ~30–45 min.
@@ -96,7 +116,29 @@ hold, no charge; prepaid/virtual cards are rejected), a phone number, and ~30–
 
 ---
 
-## Part 2 — Provision the VM
+## Part 2A — Create the network first (VCN Wizard)
+
+**Do this before creating the VM.** Creating the network inline while creating the instance is
+unreliable — the **"Assign a public IPv4 address"** toggle greys out ("You must select a public
+subnet") because a not-yet-created subnet isn't recognized as public. Creating the VCN up front
+avoids this entirely and also provisions the internet gateway + routing you need.
+
+> ⚠️ **Use "Start VCN Wizard", not "Create VCN".** They are two different buttons:
+> - **Start VCN Wizard → "Create VCN with Internet Connectivity"** = all-in-one. Creates the VCN
+>   **plus a public subnet, a private subnet, an internet gateway, route tables, and security
+>   lists**. CIDRs are pre-filled — you never type one.
+> - **"Create VCN"** (plain) = an **empty shell**. No subnets, no gateway, no routing (this is the
+>   flow that makes you type a CIDR block manually). If you used this by mistake, delete it and
+>   use the wizard instead.
+
+1. ☰ menu → **Networking → Virtual Cloud Networks**.
+2. Click **Start VCN Wizard** (top of the page) → select **"Create VCN with Internet
+   Connectivity"** → **Start VCN Wizard**.
+3. **Name:** `postman-insights-vcn`. Leave all pre-filled CIDRs as-is → **Next** → **Create**.
+4. When it finishes, open the VCN and confirm it contains a **public subnet** (named like
+   `public subnet-postman-insights-vcn`) and a private subnet.
+
+## Part 2B — Provision the VM
 
 1. In the Console, open the menu (☰) → **Compute → Instances → Create instance**.
 2. **Name:** `postman-insights-demo`.
@@ -108,8 +150,9 @@ hold, no charge; prepaid/virtual cards are rejected), a phone number, and ~30–
      - *If ARM capacity is unavailable*, fall back to **`VM.Standard.E2.1.Micro`** (AMD, Always
        Free) — but it only has **1 GB RAM**, which is tight; prefer ARM and retry (see
        Troubleshooting).
-4. **Networking:** leave the default — it will **Create new VCN** with a public subnet. Ensure
-   **"Assign a public IPv4 address"** is **Yes**.
+4. **Networking:** choose **Select existing virtual cloud network** → pick `postman-insights-vcn`
+   (from Part 2A) → under **Subnet**, choose the **public** subnet. The
+   **"Assign a public IPv4 address"** toggle now un-greys → set it **ON**.
 5. **Add SSH keys:** choose **Generate a key pair for me** and **download both** the private and
    public keys (or paste your own public key). Save the private key somewhere safe, e.g.:
    ```bash
@@ -156,28 +199,13 @@ sudo netfilter-persistent save   # if missing: sudo apt-get install -y iptables-
 
 ---
 
-## Part 4 — Install Docker
+## Part 4 — Install git (that's all)
 
-On the VM:
+No Docker, Node, or Caddy to install by hand — Part 2's `deploy-runtime.sh` installs everything
+the stack needs. You only need **git** to clone the repo:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y ca-certificates curl gnupg
-sudo install -m 0755 -d /etc/apt/keyrings
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-sudo chmod a+r /etc/apt/keyrings/docker.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-  https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# run docker without sudo
-sudo usermod -aG docker $USER
-newgrp docker
-
-docker run --rm hello-world   # verify
+sudo apt-get update && sudo apt-get install -y git
 ```
 
 ---
@@ -212,32 +240,38 @@ Before moving on, confirm:
 
 ---
 
-## Next step — deploy the stack
+## Next step — Part 2: deploy the stack
 
-With the VM ready, the next document/stack deploys onto it:
+With the VM ready, the whole backend + agent stack lives in **[`runtime-vm/`](runtime-vm/)** —
+full runbook in [`runtime-vm/README.md`](runtime-vm/README.md). On the VM:
 
-1. The three APIs via `wrangler dev` (the existing Worker code, unchanged) on loopback ports
-2. **Caddy** terminating TLS on your hostname → proxying to the APIs
-3. The **Postman Insights agent** sniffing the plaintext hop, run with:
-   ```
-   postman-insights-agent apidump --workspace-id <WORKSPACE_ID> --system-env <SYSTEM_ENV>
-   ```
-4. Add the parallel **Oracle *** Postman environments (`baseUrl` → `https://<your-hostname>`),
-   keeping the existing **Production *** (Cloudflare) environments as-is.
-5. Generate observed traffic against the VM URL — via a **parallel** CI job or a scheduled
-   synthetic run — so the agent always has traffic to report. The existing Cloudflare-targeted
-   jobs stay untouched.
+```bash
+git clone https://github.com/davidespihernandez/postman-api-catalog-demo.git
+cd postman-api-catalog-demo/runtime-vm
+cp .env.example .env && nano .env     # HOSTNAME, POSTMAN_API_KEY, INSIGHTS_WORKSPACE_ID, INSIGHTS_SYSTEM_ENV
+./deploy-runtime.sh
+```
+
+`deploy-runtime.sh` installs Node/Caddy/the Insights agent and runs (all native, systemd):
+
+1. The three APIs via `wrangler dev` (existing Worker code, unchanged) on loopback ports
+2. **Caddy** terminating TLS on `<api>.<HOSTNAME>` → proxying to the APIs
+3. The **Postman Insights agent** — `apidump --workspace-id <ID> --system-env <ID>` — sniffing
+   the plaintext hop
+4. Traffic via `runtime-vm/synthetic-traffic.sh` (cron) and/or the scheduled GitHub Actions job
+   `postman-orders-qa-oracle.yml`; the existing Cloudflare jobs stay untouched.
+
+Then add the parallel **Oracle \*** Postman environments (`postman/environments/Oracle *.yaml`),
+pointing each `baseUrl` at `https://<api>.<HOSTNAME>`, and set the workflow's
+`POSTMAN_ENVIRONMENT_ID` once the Oracle Orders environment exists in Postman cloud.
 
 **Validation gate before you rely on the Oracle environment in a live demo:**
 
 - [ ] Runtime Health tiles in the catalog leave `N/A` and show real values
 - [ ] Endpoints appear under "Top 5 Highest Error Rate Endpoints" (Insights sees your traffic)
-- [ ] Collection tests pass against `https://<your-hostname>` exactly as they do on Cloudflare
+- [ ] Collection tests pass against the Oracle URL exactly as they do on Cloudflare
 
 Both backends remain available regardless — the gate is just "is the Oracle path demo-ready yet."
-
-*(Part 2 stack — Dockerfile / docker-compose / Caddyfile / deploy script — is added to the repo
-once built.)*
 
 ---
 
@@ -245,7 +279,7 @@ once built.)*
 
 | Symptom | Fix |
 |---------|-----|
-| **"Out of host capacity"** creating an ARM A1 instance | Common for ARM. Retry in a few hours, try a different Availability Domain, or switch home-region strategy. Quick workaround: use the AMD `VM.Standard.E2.1.Micro` shape (1 GB RAM — tight but works for a light demo). |
+| **"Out of capacity for shape VM.Standard.A1.Flex in availability domain AD-x"** | Very common — free ARM capacity is in high demand, not a config error. In order: (1) In **Placement**, switch **Availability Domain** to AD-2/AD-3 if your region has them and retry. (2) Retry every few minutes / at off-peak hours — A1 slots free up constantly and usually succeed within a day. Worth it for the 6 GB RAM. (3) Unblock now with the AMD `VM.Standard.E2.1.Micro` shape (Always Free, almost always available) — but it has only **1 GB RAM**, so run the backend as a single consolidated Node process (not 3 × `wrangler dev`) to fit. |
 | Port 80/443 open in OCI but connection times out | The host iptables rules (Part 3b) aren't applied/saved. Re-run the iptables commands and `netfilter-persistent save`. |
 | SSH "Permission denied (publickey)" | Wrong user (use `ubuntu` for Ubuntu images), wrong key, or key perms not `600` (`chmod 600 <key>`). |
 | Let's Encrypt cert fails in Caddy (Part 2) | Hostname doesn't resolve to the VM yet (check `dig +short`), or port 80 is blocked (Parts 3a/3b). |
