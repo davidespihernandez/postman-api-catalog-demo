@@ -1,5 +1,6 @@
 workspace:
   id: 37875132-fcb4-4a68-ae65-2913c91fdd60
+
 localResources:
   specs:
     - ../notifications.asyncapi.yaml
@@ -7,6 +8,10 @@ localResources:
     - ../users.yaml
     - ../payments.yaml
     - ../orders.yaml
+    - ../frontend/package.json
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
 cloudResources:
   collections:
     ../postman/collections/Orders - Doc: 53522859-0cc5e110-e343-488d-866d-195c6694abfb

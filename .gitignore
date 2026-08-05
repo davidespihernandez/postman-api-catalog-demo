@@ -4,3 +4,6 @@ node_modules/
 .demo-state.env
 .DS_Store
 apis/*/openapi.json
+pm-results/
+test-results/
+playwright-report/

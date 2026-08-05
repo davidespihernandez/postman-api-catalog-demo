@@ -45,21 +45,28 @@ npx playwright test       # boots the dev server automatically
 
 ## Run WITH Postman capture (the demo)
 
+> Run `postman app init` / `postman app test` from the **repo root**, not from
+> `frontend/` — Postman ties the "application" to the git repo root. The root
+> `package.json` exposes `test:ui`, which runs this frontend's Playwright suite,
+> so it shows up in the init picker and in `postman.config.cjs`.
+
 ```bash
+cd ..                               # repo root
 npm install -g postman-cli
 postman login                       # or set POSTMAN_API_KEY
-postman app init                    # confirm collection = "Orders - QA",
-                                    #   environment = "Production - Orders",
-                                    #   test command  = "npx playwright test"
+postman app init                    # collection    = "Orders - Doc" (or "Orders - QA")
+                                    #   environment  = "Production Orders"
+                                    #   test script  = "npm run test:ui"
 CI=true postman app test            # runs Playwright, captures traffic
 ```
 
-Then open **Application Inventory** in Postman to show the captured Orders
-requests matched against the collection (matched vs. not-matched = live proof
-the UI exercises the documented API contract).
+This writes `postman.config.cjs` **at the repo root**. Then open **Application
+Inventory** in Postman to show the captured Orders requests matched against the
+collection (matched vs. not-matched = live proof the UI exercises the documented
+API contract).
 
-> `postman.config.cjs` is pre-filled — edit the collection/environment names to
-> match your workspace exactly if `postman app init` doesn't overwrite them.
+> If the init picker doesn't list `npm run test:ui`, choose **"Enter manually"**
+> and type it (or `cd frontend && npx playwright test`).
 
 ## Deploy the UI to Cloudflare Pages (optional)
 

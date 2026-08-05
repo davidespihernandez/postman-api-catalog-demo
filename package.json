@@ -14,7 +14,9 @@
     "deploy:users": "wrangler deploy --config apis/users/wrangler.toml",
     "delete:payments": "wrangler delete --config apis/payments/wrangler.toml --force",
     "demo": "./demo.sh",
-    "mqtt-bridge": "node scripts/mqtt-webhook-bridge.mjs"
+    "mqtt-bridge": "node scripts/mqtt-webhook-bridge.mjs",
+    "test:ui": "frontend/node_modules/.bin/playwright test --config frontend/playwright.config.js",
+    "app:test": "postman app test --report-events"
   },
   "devDependencies": {
     "wrangler": "^4.14.0"

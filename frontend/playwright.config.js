@@ -4,6 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 // `npx playwright test`) is fully self-contained.
 export default defineConfig({
   testDir: "./ui-tests",
+  // Wipe stale network captures so `postman app test` counts stay accurate.
+  globalSetup: "./global-setup.js",
   timeout: 30_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

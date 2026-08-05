@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173",
+    "test": "playwright test",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=postman-api-catalog-demo-orders-ui"
   },
   "dependencies": {
