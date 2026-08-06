@@ -40,9 +40,9 @@ gstate() { gcloud compute instances describe "$GCP_INSTANCE" --zone "$GCP_ZONE" 
 gssh()   { ssh -i "$SSH_KEY" -o ConnectTimeout=15 -o StrictHostKeyChecking=accept-new -o BatchMode=yes ubuntu@"$(gip)" "$@"; }
 SVCS="wrangler-orders wrangler-payments wrangler-users postman-insights caddy"
 
-gcp_start()  { load_gcp; echo "==> Starting $GCP_INSTANCE ($GCP_ZONE)…"; gcloud compute instances start "$GCP_INSTANCE" --zone "$GCP_ZONE" --project "$GCP_PROJECT" -q; echo "    IP: $(gip)"; echo "    URL: https://$DEMO_HOST  (DuckDNS + services auto-start on boot; give it ~60s)"; }
-gcp_stop()   { load_gcp; echo "==> Stopping $GCP_INSTANCE…"; gcloud compute instances stop "$GCP_INSTANCE" --zone "$GCP_ZONE" --project "$GCP_PROJECT" -q; echo "    Stopped. IPv4 released (~\$0). Catalog data stays visible ~7 days."; }
-gcp_reset()  { load_gcp; echo "==> Restarting services on $GCP_INSTANCE…"; gssh "sudo systemctl restart $SVCS; sleep 5; for s in $SVCS duckdns.timer; do printf '%-20s %s\n' \"\$s\" \"\$(systemctl is-active \$s)\"; done"; }
+gcp_start()  { load_gcp; echo "==> Starting $GCP_INSTANCE ($GCP_ZONE)..."; gcloud compute instances start "$GCP_INSTANCE" --zone "$GCP_ZONE" --project "$GCP_PROJECT" -q; echo "    IP: $(gip)"; echo "    URL: https://$DEMO_HOST  (DuckDNS + services auto-start on boot; give it ~60s)"; }
+gcp_stop()   { load_gcp; echo "==> Stopping $GCP_INSTANCE..."; gcloud compute instances stop "$GCP_INSTANCE" --zone "$GCP_ZONE" --project "$GCP_PROJECT" -q; echo "    Stopped. IPv4 released (~\$0). Catalog data stays visible ~7 days."; }
+gcp_reset()  { load_gcp; echo "==> Restarting services on $GCP_INSTANCE..."; gssh "sudo systemctl restart $SVCS; sleep 5; for s in $SVCS duckdns.timer; do printf '%-20s %s\n' \"\$s\" \"\$(systemctl is-active \$s)\"; done"; }
 gcp_status() {
   load_gcp; local st; st="$(gstate)"; echo "GCP VM ($GCP_INSTANCE): ${st:-NOT FOUND}"
   [ "$st" = "RUNNING" ] || { echo "  (stopped — run: ./control.sh gcp start)"; return 0; }
@@ -64,8 +64,8 @@ target="${1:-}"; action="${2:-}"
 case "$target/$action" in
   gcp/start) gcp_start ;;  gcp/stop) gcp_stop ;;  gcp/reset) gcp_reset ;;  gcp/status) gcp_status ;;  gcp/urls) gcp_urls ;;
   cf/start)  cf_start ;;   cf/stop)  cf_stop ;;   cf/reset)  cf_reset ;;   cf/status)  cf_status ;;   cf/urls)  cf_urls ;;
-  all/status) echo "── Cloudflare ──"; cf_status || true; echo; echo "── GCP ──"; gcp_status || true ;;
-  all/start)  echo "── Cloudflare ──"; cf_start  || true; echo; echo "── GCP ──"; gcp_start  || true ;;
+  all/status) echo "-- Cloudflare --"; cf_status || true; echo; echo "-- GCP --"; gcp_status || true ;;
+  all/start)  echo "-- Cloudflare --"; cf_start  || true; echo; echo "-- GCP --"; gcp_start  || true ;;
   all/stop)   gcp_stop || true; echo "(Cloudflare left running — always-on & free)" ;;
   *) usage; exit 1 ;;
 esac
