@@ -1,19 +1,28 @@
 # Postman API Catalog Demo
 
-Real HTTPS APIs on **Cloudflare Workers** (free tier) for repeatable **API Catalog** demos.
+Real HTTPS APIs for repeatable **API Catalog** demos, on **two backends** you switch between with
+Postman environments:
 
 ```
-Setup (terminal once)  →  Cloudflare Workers
-Customer demo          →  Postman app only (catalog + collections)
+Cloudflare Workers  →  the classic demo (CI/CD, spec, tests)     ./demo.sh
+GCP VM + Insights   →  adds Runtime Health & observed endpoints   ./control.sh gcp …
 ```
+
+The Insights agent can't run on serverless Cloudflare Workers, so the GCP VM hosts a self-hosted
+twin the agent can observe. Both stay live.
 
 Repository: [github.com/davidespihernandez/postman-api-catalog-demo](https://github.com/davidespihernandez/postman-api-catalog-demo)
 
 | Doc | Audience |
 |-----|----------|
-| [SE-INSTALL.md](SE-INSTALL.md) | SE one-time setup (includes deploy) |
+| [SE-INSTALL.md](SE-INSTALL.md) | SE one-time setup — Cloudflare (includes deploy) |
 | [DEMO-STEPS.md](DEMO-STEPS.md) | Customer demo (Postman app only) |
 | [CI-CD.md](CI-CD.md) | GitHub Actions + Postman CLI (Orders QA) |
+| [GCP-INSIGHTS.md](GCP-INSIGHTS.md) | **Runtime Health via a free GCP VM + Insights agent** (full replication runbook) |
+| [runtime-vm/README.md](runtime-vm/README.md) | The GCP stack internals (deploy-runtime.sh) |
+
+**Two control scripts:** `./demo.sh` manages the Cloudflare backend; `./control.sh <cf\|gcp\|all>
+<start\|stop\|reset\|status\|urls>` manages both (GCP settings in `runtime-vm/gcp/gcp.env`).
 
 ## Setup (before the demo)
 
