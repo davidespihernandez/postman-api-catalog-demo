@@ -1,0 +1,11 @@
+owner: "53522859"
+team: "14577123"
+name: GCP Orders
+color: null
+values:
+  - key: baseUrl
+    # Self-hosted APIs on the GCP VM (observed by the Insights agent), one DuckDNS host,
+    # path-routed: the Orders collection calls {{baseUrl}}/orders, etc.
+    # Replace CHANGE-ME with your DuckDNS subdomain (see runtime-vm/.env HOSTNAME).
+    value: https://CHANGE-ME.duckdns.org
+    enabled: true

@@ -1,11 +1,11 @@
 # Runtime-VM stack — Part 2 (deploy the observable backend + Insights agent)
 
 This is **Part 2** of getting Runtime Health into the API Catalog. Do **Part 1** first —
-provision the Oracle VM per [`../ORACLE-INSIGHTS.md`](../ORACLE-INSIGHTS.md) (VM running, ports
-80/443 open in both firewalls, Docker not required, a hostname resolving to the public IP).
+provision the GCP VM per [`../GCP-INSIGHTS.md`](../GCP-INSIGHTS.md) (VM running, ports
+80/443 open in the VPC firewall, Docker not required, a hostname resolving to the public IP).
 
 > Reminder: this runs **alongside** Cloudflare, it does not replace it. See the dual-environment
-> strategy in `ORACLE-INSIGHTS.md`.
+> strategy in `GCP-INSIGHTS.md`.
 
 ## What this deploys (all native on the VM — no Docker)
 
@@ -53,19 +53,19 @@ Then generate some traffic and confirm the catalog:
 
 - Add it to cron for a steady trickle (keeps availability/latency fresh):
   `crontab -e` → `* * * * * $PWD/synthetic-traffic.sh >/dev/null 2>&1`
-- Or rely on the scheduled GitHub Actions job `postman-orders-qa-oracle.yml` (every 30 min).
+- Or rely on the scheduled GitHub Actions job `postman-orders-qa-gcp.yml` (every 30 min).
 
 Within ~5–8 minutes the Insights agent discovers endpoints and **Runtime Health** in the catalog
 should leave `N/A`.
 
 ## Wire up the Postman environments + CI
 
-1. Import `postman/environments/Oracle *.environment.yaml` into Postman; set each `baseUrl` to
+1. Import `postman/environments/GCP *.environment.yaml` into Postman; set each `baseUrl` to
    your real `https://<api>.<HOSTNAME>`.
-2. In `.github/workflows/postman-orders-qa-oracle.yml`, set `POSTMAN_ENVIRONMENT_ID` to the
-   **Oracle Orders** environment's ID.
+2. In `.github/workflows/postman-orders-qa-gcp.yml`, set `POSTMAN_ENVIRONMENT_ID` to the
+   **GCP Orders** environment's ID.
 3. In a demo, switch the collection's environment between **Production \*** (Cloudflare) and
-   **Oracle \*** (self-hosted) — same tests, different backend, and only the Oracle one feeds
+   **GCP \*** (self-hosted) — same tests, different backend, and only the GCP one feeds
    Runtime Health.
 
 ## ⚠️ Two things to verify on the VM (couldn't be tested before the box existed)
@@ -83,7 +83,7 @@ should leave `N/A`.
 
 | Symptom | Fix |
 |---------|-----|
-| Caddy TLS cert fails | Hostname must resolve to the VM (`dig +short orders.$HOSTNAME`) and ports 80/443 open in **both** the OCI security list and host iptables (ORACLE-INSIGHTS.md Part 3). |
+| Caddy TLS cert fails | Hostname must resolve to the VM (`dig +short orders.$HOSTNAME`) and ports 80/443 open in the **VPC firewall** (the Allow HTTP/HTTPS rules — GCP-INSIGHTS.md Part 2). |
 | `wrangler: not found` | `npm ci` didn't run at the repo root, or Node < 20. Re-run `./deploy-runtime.sh`. |
 | Agent runs but catalog stays N/A | Give it 5–8 min after first traffic; confirm `POSTMAN_API_KEY`, `--workspace-id`, `--system-env` are correct; ensure traffic is actually hitting the VM (not Cloudflare). |
 | Port already in use | Another process on 8787–8789; change the ports in `.env` and re-run `./deploy-runtime.sh`. |

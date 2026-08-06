@@ -1,18 +1,22 @@
 # Self-hosted test API on GCP + Postman Insights (for the API Catalog)
 
-Same goal as [`ORACLE-INSIGHTS.md`](ORACLE-INSIGHTS.md) — a self-hosted twin of the Cloudflare API
-where the **Postman Insights agent** can run, so the Insights-powered parts of the API Catalog
-(Runtime Health, observed endpoints, error rates) light up. This is the **GCP alternative**, used
-because Oracle's free ARM (A1) capacity is unobtainable in some regions.
+A self-hosted twin of the Cloudflare API where the **Postman Insights agent** can run, so the
+Insights-powered parts of the API Catalog (Runtime Health, observed endpoints, error rates) light
+up — the agent can't run on serverless Cloudflare Workers, so it needs a real VM to attach to.
 
 > Both backends stay live alongside Cloudflare — this is additive, not a migration.
 
-## Why GCP works here
+## Why GCP
 
-GCP's **Always Free** tier includes **one `e2-micro` VM, free forever** — a real Linux VM with
-root and a public IP, so the agent can run (unlike serverless free tiers). No capacity lottery
-like Oracle A1. Trade-off: **e2-micro is ~1 GB RAM**, so `deploy-runtime.sh` auto-adds a 2 GB
-swapfile. Fine for a demo; the 20-VU perf test may run slower.
+GCP's **Always Free** tier includes an **`e2-micro` VM** — a real Linux VM with root and a public
+IP, so the agent can run (unlike serverless free tiers), and e2-micro capacity is reliably
+available. Trade-off: **e2-micro is ~1 GB RAM**, so `deploy-runtime.sh` auto-adds a 2 GB swapfile.
+Fine for a demo; the 20-VU perf test may run slower.
+
+> **Cost note:** the VM itself is free, but GCP charges ~$0.005/hr (~$3.60/mo) for the external
+> IPv4 while the VM is **running**. A **stopped** VM costs ~$0 (IP released, disk within Always
+> Free). Use `runtime-vm/gcp/vm-start.sh` / `vm-stop.sh` to run it only when needed — Insights
+> shows the last 7 days, so a couple of days of traffic seeds the catalog for a week.
 
 ## Free-tier limits to respect (stay inside these = no charge)
 
@@ -53,8 +57,8 @@ stay within the limits above. (New accounts also get a separate $300/90-day cred
      firewall rules for ports 80/443 automatically).
 3. **Create.** When it's running, copy the **External IP** from the instances list.
 
-> Unlike Oracle, GCP's Ubuntu images have **no restrictive host iptables** — opening 80/443 in the
-> VPC firewall (the two checkboxes above) is all you need. One firewall, not two.
+> GCP's Ubuntu images have **no restrictive host iptables** — opening 80/443 in the VPC firewall
+> (the two checkboxes above) is all you need.
 
 ## Part 3 — SSH in
 
@@ -70,16 +74,15 @@ rule**, allow `tcp:80,443` from `0.0.0.0/0`, target all instances or the instanc
 
 ## Part 4 — Point a hostname at the VM (for TLS)
 
-Caddy needs a hostname to fetch a Let's Encrypt cert. Same as Oracle:
+Caddy needs a hostname to fetch a Let's Encrypt cert. Two free options:
 
 - **nip.io (zero signup):** for external IP `34.71.5.9`, use `34-71-5-9.nip.io`. Each API is then
   `orders.34-71-5-9.nip.io`, etc.
 - **DuckDNS:** create a subdomain pointed at the external IP for a stable name.
 
-## Part 5 — Deploy the stack (Part 2, shared with Oracle)
+## Part 5 — Deploy the stack (Part 2)
 
-Identical to the Oracle path — the stack in [`runtime-vm/`](runtime-vm/) is cloud-agnostic and
-auto-adds swap on this 1 GB box:
+The stack in [`runtime-vm/`](runtime-vm/) is cloud-agnostic and auto-adds swap on this 1 GB box:
 
 ```bash
 sudo apt-get update && sudo apt-get install -y git
@@ -91,7 +94,7 @@ nano .env          # HOSTNAME (your nip.io/DuckDNS name), POSTMAN_API_KEY, INSIG
 ```
 
 Then follow **Verify** and **Wire up the Postman environments + CI** in
-[`runtime-vm/README.md`](runtime-vm/README.md). Everything after this point is the same as Oracle.
+[`runtime-vm/README.md`](runtime-vm/README.md).
 
 ---
 

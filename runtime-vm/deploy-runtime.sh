@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  deploy-runtime.sh  —  SELF-HOSTED API + Postman Insights stack (Oracle VM)
+#  deploy-runtime.sh  —  SELF-HOSTED API + Postman Insights stack (GCP VM)
 # =============================================================================
 #  This is NOT the Cloudflare demo. It stands up a self-hosted copy of the APIs
-#  on an Oracle VM plus the Postman Insights agent, so the Insights-powered parts
+#  on an GCP VM plus the Postman Insights agent, so the Insights-powered parts
 #  of the API Catalog light up (Runtime Health, observed endpoints, error rates).
 #
 #    Cloudflare Workers demo ......... ../demo.sh        (run on your laptop)
-#    Self-hosted API + Insights ...... this script       (run ON the Oracle VM)
+#    Self-hosted API + Insights ...... this script       (run ON the GCP VM)
 #
-#  The two are independent and both stay live — see ../ORACLE-INSIGHTS.md.
+#  The two are independent and both stay live — see ../GCP-INSIGHTS.md.
 # =============================================================================
 #
-# Run ON the Oracle VM (Ubuntu 22.04), from the repo's runtime-vm/ dir:
+# Run ON the GCP VM (Ubuntu 22.04), from the repo's runtime-vm/ dir:
 #   cd postman-api-catalog-demo/runtime-vm
 #   cp .env.example .env && nano .env      # fill HOSTNAME, POSTMAN_API_KEY, INSIGHTS_*
 #   ./deploy-runtime.sh
@@ -21,7 +21,8 @@
 #   - installs Node 20, Caddy, and the Postman Insights agent
 #   - `npm ci` at the repo root (pulls wrangler from devDependencies)
 #   - runs each API as a systemd service via `wrangler dev` on a loopback port
-#   - configures Caddy to terminate TLS on <api>.<HOSTNAME> and proxy to those ports
+#   - configures Caddy to terminate TLS on <HOSTNAME> and path-route to those ports
+#   - (if DUCKDNS_* set) keeps <HOSTNAME> pointed at the VM's current public IP
 #   - runs the Insights agent as a systemd service, reporting to your workspace/system-env
 #
 # Idempotent: safe to re-run after editing .env.
@@ -34,7 +35,7 @@ echo "============================================================"
 
 # Sanity: this is meant to run on the Linux VM, not the macOS laptop that runs demo.sh.
 if [ "$(uname -s)" != "Linux" ]; then
-  echo "WARNING: this is not Linux. deploy-runtime.sh is meant to run ON the Oracle VM."
+  echo "WARNING: this is not Linux. deploy-runtime.sh is meant to run ON the GCP VM."
   echo "         For the Cloudflare Workers demo on your laptop, use ../demo.sh instead."
   read -r -p "Continue anyway? [y/N] " ans
   [ "$ans" = "y" ] || [ "$ans" = "Y" ] || { echo "Aborted."; exit 1; }
@@ -61,7 +62,7 @@ echo "==> Repo root: $REPO_ROOT   Hostname: $HOSTNAME   Service user: $RUN_USER"
 
 # ---------------------------------------------------------------------------
 # 0. Swap — small-RAM boxes (GCP/AWS 1 GB micro) need it so the stack doesn't OOM.
-#    Auto-skipped when the VM already has >=2 GB RAM (e.g. Oracle A1 6 GB) or swap is on.
+#    Auto-skipped when the VM already has >=2 GB RAM or swap is already on.
 # ---------------------------------------------------------------------------
 mem_mb=$(free -m | awk '/^Mem:/{print $2}')
 if [ "${mem_mb:-9999}" -lt 2000 ] && ! sudo swapon --show | grep -q .; then
@@ -164,18 +165,62 @@ WantedBy=multi-user.target
 UNIT
 
 # ---------------------------------------------------------------------------
-# 5. Caddy — TLS + reverse proxy, one subdomain per API
+# 4b. DuckDNS updater — keeps $HOSTNAME pointed at the VM's current public IP.
+#     The GCP ephemeral IP changes on each start/stop, so refresh on boot + every 5 min.
+# ---------------------------------------------------------------------------
+if [ -n "${DUCKDNS_TOKEN:-}" ] && [ -n "${DUCKDNS_SUBDOMAIN:-}" ]; then
+  echo "==> systemd unit: duckdns updater ($DUCKDNS_SUBDOMAIN.duckdns.org)"
+  sudo tee /etc/systemd/system/duckdns.service >/dev/null <<UNIT
+[Unit]
+Description=DuckDNS updater for $DUCKDNS_SUBDOMAIN.duckdns.org
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/curl -fsS "https://www.duckdns.org/update?domains=$DUCKDNS_SUBDOMAIN&token=$DUCKDNS_TOKEN&ip="
+UNIT
+  sudo tee /etc/systemd/system/duckdns.timer >/dev/null <<UNIT
+[Unit]
+Description=Refresh DuckDNS every 5 minutes
+
+[Timer]
+OnBootSec=15
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
+UNIT
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now duckdns.timer
+  sudo systemctl start duckdns.service   # set the A record to the current IP now
+  echo "==> DuckDNS record updated for $DUCKDNS_SUBDOMAIN.duckdns.org"
+fi
+
+# ---------------------------------------------------------------------------
+# 5. Caddy — TLS + reverse proxy. Single host ($HOSTNAME), path-routed to the
+#    three backends (DuckDNS gives one name, so we route by top-level path).
+#    Paths are NOT stripped — each worker expects /orders, /payments, /users at its root.
 # ---------------------------------------------------------------------------
 echo "==> Writing /etc/caddy/Caddyfile"
 sudo tee /etc/caddy/Caddyfile >/dev/null <<CADDY
-orders.$HOSTNAME {
-	reverse_proxy 127.0.0.1:$ORDERS_PORT
-}
-payments.$HOSTNAME {
-	reverse_proxy 127.0.0.1:$PAYMENTS_PORT
-}
-users.$HOSTNAME {
-	reverse_proxy 127.0.0.1:$USERS_PORT
+$HOSTNAME {
+	@orders path /orders /orders/*
+	handle @orders {
+		reverse_proxy 127.0.0.1:$ORDERS_PORT
+	}
+	@payments path /payments /payments/*
+	handle @payments {
+		reverse_proxy 127.0.0.1:$PAYMENTS_PORT
+	}
+	@users path /users /users/*
+	handle @users {
+		reverse_proxy 127.0.0.1:$USERS_PORT
+	}
+	# default (/, /health, /openapi.json) -> orders backend
+	handle {
+		reverse_proxy 127.0.0.1:$ORDERS_PORT
+	}
 }
 CADDY
 
@@ -188,10 +233,11 @@ sudo systemctl enable --now wrangler-orders wrangler-payments wrangler-users pos
 sudo systemctl reload caddy || sudo systemctl restart caddy
 
 echo
-echo "==> Done. URLs:"
-echo "     https://orders.$HOSTNAME/health"
-echo "     https://payments.$HOSTNAME/health"
-echo "     https://users.$HOSTNAME/health"
+echo "==> Done. Base URL: https://$HOSTNAME"
+echo "     health:   https://$HOSTNAME/health"
+echo "     orders:   https://$HOSTNAME/orders"
+echo "     payments: https://$HOSTNAME/payments"
+echo "     users:    https://$HOSTNAME/users"
 echo
 echo "Check status:   systemctl status wrangler-orders postman-insights caddy"
 echo "Tail agent log: journalctl -u postman-insights -f"

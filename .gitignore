@@ -7,3 +7,9 @@ apis/*/openapi.json
 pm-results/
 test-results/
 playwright-report/
+
+# GCP VM toggle config (per-SE)
+runtime-vm/gcp/gcp.env
+
+# runtime-vm secrets
+runtime-vm/.env
