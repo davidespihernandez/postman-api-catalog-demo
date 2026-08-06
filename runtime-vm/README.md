@@ -10,7 +10,7 @@ firewall, a DuckDNS hostname + token ready).
 ## What this deploys (all native on the VM — no Docker)
 
 ```
-GitHub Actions / synthetic traffic ──HTTPS──▶ Caddy (:443, auto Let's Encrypt)
+synthetic-traffic cron / demo runs ──HTTPS──▶ Caddy (:443, auto Let's Encrypt)
         https://<HOSTNAME>/orders|/payments|/users        │  path-routed, plaintext on 127.0.0.1
                                                            ▼
               wrangler dev × 3  (:8787 / :8788 / :8789)  ◀── Insights agent (apidump) sniffs
@@ -74,14 +74,15 @@ Use the unified [`../control.sh`](../control.sh) (needs `gcp/gcp.env`):
 ./control.sh gcp stop      # shut down -> ~$0 (IPv4 released; catalog keeps 7 days of data)
 ```
 
-## Wire up the Postman environments + CI
+## Wire up the Postman environments
 
 1. Import `postman/environments/GCP *.environment.yaml` into Postman; set each `baseUrl` to your
    single host, `https://<HOSTNAME>` (collections append `/orders`, `/payments`, `/users`).
-2. In `.github/workflows/postman-orders-qa-gcp.yml`, set `POSTMAN_ENVIRONMENT_ID` to the **GCP
-   Orders** environment's ID, then re-enable its `schedule`/`push` triggers.
-3. In a demo, switch the collection's environment between **Production \*** (Cloudflare) and
+2. In a demo, switch the collection's environment between **Production \*** (Cloudflare) and
    **GCP \*** (self-hosted) — same tests, different backend; only the GCP one feeds Runtime Health.
+
+> No GitHub Actions for the GCP backend — it isn't always running. Traffic comes from the on-VM
+> `synthetic-traffic.sh` cron (while the VM is up) and your live demo runs. CI stays Cloudflare-only.
 
 ## Gotchas we already handled (so you don't have to)
 
