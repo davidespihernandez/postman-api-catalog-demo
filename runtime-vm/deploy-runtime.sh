@@ -79,9 +79,9 @@ fi
 # ---------------------------------------------------------------------------
 # 1. System packages: Node 20, Caddy, curl
 # ---------------------------------------------------------------------------
-if ! command -v node >/dev/null || [ "$(node -v | cut -c2-3)" -lt 20 ]; then
-  echo "==> Installing Node 20"
-  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+if ! command -v node >/dev/null || [ "$(node -v | cut -c2-3)" -lt 22 ]; then
+  echo "==> Installing Node 22 (Wrangler requires Node >= 22)"
+  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
   sudo apt-get install -y nodejs
 fi
 
