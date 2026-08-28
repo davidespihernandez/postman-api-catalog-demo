@@ -1,43 +1,57 @@
 workspace:
   id: 37875132-fcb4-4a68-ae65-2913c91fdd60
-
 localResources:
   specs:
-    - ../notifications.asyncapi.yaml
+    - ../frontend/package.json
+    - ../index.yaml
     - ../payment-refund-webhook.yaml
     - ../users.yaml
     - ../payments.yaml
     - ../orders.yaml
-    - ../frontend/package.json
-
-# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
-
 cloudResources:
   collections:
-    ../postman/collections/Orders - Doc: 53522859-0cc5e110-e343-488d-866d-195c6694abfb
-    ../postman/collections/Payments - Doc: 53522859-3b2eb094-4abe-443f-be17-5c0f5fb2a1ad
-    ../postman/collections/Users - Doc: 53522859-c1a24ffb-679a-4357-8015-f980737b1bf8
     ../postman/collections/Orders GET performance test: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855
     ../postman/collections/Notifications (MQTT): 6a54a3549c3b4fc2758fe3cc
     ../postman/collections/Orders GET test using Dataset: 53522859-f3aa51ce-f4f8-48de-9677-d6cd9eb69a8d
+    ../postman/collections/Users - Doc: 53522859-c1a24ffb-679a-4357-8015-f980737b1bf8
+    ../postman/collections/Payments - Doc: 53522859-3b2eb094-4abe-443f-be17-5c0f5fb2a1ad
+    ../postman/collections/Orders - Doc: 53522859-0cc5e110-e343-488d-866d-195c6694abfb
+    ../postman/collections/Get OpenAPIs: 53522859-5de4a533-265b-4def-99e1-e3d49bfe4f27
+    ../postman/collections/Payments - QA: 53522859-c30dbaa3-a2ad-47ff-b010-7acf2f9fd8f5
+    ../postman/collections/Users - QA: 53522859-9399b6e0-663f-40a7-92eb-99d28a23b6b1
+    ../postman/collections/Orders - QA: 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
   environments:
-    ../postman/environments/Production Payments.environment.yaml: 53522859-0c1c905b-c1c9-4abd-a4e5-f56885d2287c
-    ../postman/environments/Production Users.environment.yaml: 53522859-3aac4c3c-d2bc-4aeb-b14a-433172452b1a
-    ../postman/environments/Production Orders.environment.yaml: 53522859-60759898-5954-4a4a-8ed6-645707a414fa
+    ../postman/environments/Production Payments Cloudflare.environment.yaml: 53522859-0c1c905b-c1c9-4abd-a4e5-f56885d2287c
+    ../postman/environments/Production Users Cloudflare.environment.yaml: 53522859-3aac4c3c-d2bc-4aeb-b14a-433172452b1a
+    ../postman/environments/Production Orders Cloudflare.environment.yaml: 53522859-60759898-5954-4a4a-8ed6-645707a414fa
     ../postman/environments/Mock Payments.environment.yaml: 53522859-66abb0b7-1278-4922-bcc7-6ff9f8a5db43
-    ../postman/environments/Mock Users.environment.yaml: 53522859-b7d1ec90-5380-4bc7-8fcc-81aa67db2999
-    ../postman/environments/Mock Orders.environment.yaml: 53522859-cbef87b8-bd00-494c-9bd7-e128428b4d26
+    ../postman/environments/Production Notifications Cloudflare.environment.yaml: 53522859-7776d123-dfa5-4607-aae2-26f3aec253d4
+    ../postman/environments/Production Users AWS.environment.yaml: 53522859-8f60449d-c57e-46b0-9241-f4b83484c73b
+    ../postman/environments/Production Orders AWS.environment.yaml: 53522859-9577f7c6-d8c7-4375-bf19-85b17e418c33
+    ../postman/environments/Production Payments AWS.environment.yaml: 53522859-9b275776-9810-4887-a66f-a61d7f33f215
+    ../postman/environments/Production Notifications AWS.environment.yaml: 53522859-ab2cdc69-d153-4916-8a41-c2d2b09edaa6
     ../postman/environments/Production Refund Webhook.environment.yaml: 53522859-af505193-5819-4f1f-82b7-94641265d241
-    ../postman/environments/Notifications.environment.yaml: 53522859-c0f019cf-045d-48e6-8622-4fa4be3c6311
+    ../postman/environments/Mock Users.environment.yaml: 53522859-b7d1ec90-5380-4bc7-8fcc-81aa67db2999
+    ../postman/environments/Production Users Google Cloud.environment.yaml: 53522859-bdec0f12-ccb9-4d51-bcd6-d1935e8128aa
+    ../postman/environments/Notifications MQTT.environment.yaml: 53522859-c0f019cf-045d-48e6-8622-4fa4be3c6311
+    ../postman/environments/Mock Orders.environment.yaml: 53522859-cbef87b8-bd00-494c-9bd7-e128428b4d26
+    ../postman/environments/Production Orders Google Cloud.environment.yaml: 53522859-f19602d2-73cb-4273-ad1b-0a72f94c40f5
+    ../postman/environments/Production Payments Google Cloud.environment.yaml: 53522859-f8db9411-cc61-45cf-886f-cc0aa3412743
   specs:
+    ../index.yaml: 938c2265-93e0-4b10-b1c7-a56562cdde6b
+    ../payment-refund-webhook.yaml: e0d2234b-6fd1-44e9-a471-ddf280333793
     ../users.yaml: 2800392b-e6be-412d-a3b3-61195f715baa
     ../payments.yaml: f020c429-d756-4379-b951-17634c10c5b9
     ../orders.yaml: fff8186c-d957-4a94-b325-e17b033f74e1
-    ../payment-refund-webhook.yaml: e0d2234b-6fd1-44e9-a471-ddf280333793
   datasets:
     ../postman/datasets/Orders get detail test/Orders get detail test.dataset.yaml: 9ac3844b-d233-497e-b2b3-2f0bc0f6f0e2
+  documents:
+    ../postman/documents/API documentation.md: 7b0ff53e-be54-444f-b7b9-50275b264f21
+  simulations:
+    ../postman/simulations/new-simulation.sim.yaml: 01a03d77-ad90-7263-950c-da0c35c05286
 resourceNameMappings:
   specs:
+    - ../index.yaml: Notifications
     - ../payment-refund-webhook.yaml: payment-refund-webhook.yaml
     - ../users.yaml: Users
     - ../payments.yaml: Payments

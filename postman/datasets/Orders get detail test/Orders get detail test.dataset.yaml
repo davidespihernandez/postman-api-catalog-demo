@@ -6,6 +6,7 @@ sources:
     datasource:
       name: source_orders_test
       id: 3dd603c3-313c-4ac5-9d89-085e5ea798bd
+      dsKey: source_orders_test
       format: csv
       location:
         type: local_filesystem

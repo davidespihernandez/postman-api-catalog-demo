@@ -1,0 +1,6 @@
+name: Production Orders Cloudflare
+color: null
+values:
+  - key: baseUrl
+    value: https://postman-api-catalog-demo-orders.davidespi.workers.dev
+    enabled: true

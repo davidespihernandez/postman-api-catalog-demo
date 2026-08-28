@@ -1,0 +1,9 @@
+name: Production Notifications AWS
+color: null
+values:
+  - key: baseUrl
+    value: https://postman-api-catalog-demo-notifications.davidespi.workers.dev
+    enabled: true
+  - key: notificationWebhookUrl
+    value: https://x2ioaqt4lbtz2p255s6i3b0gz.webhook.pstmn.io/
+    enabled: true

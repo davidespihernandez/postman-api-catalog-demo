@@ -1,0 +1,6 @@
+name: Production Users Cloudflare
+color: null
+values:
+  - key: baseUrl
+    value: https://postman-api-catalog-demo-users.davidespi.workers.dev
+    enabled: true
