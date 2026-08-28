@@ -1,0 +1,88 @@
+# Real CI/CD pipeline — Postman local (git) is the source of truth.
+#   PR -> main : spec lint + QA collection (gate)
+#   push main  : spec lint + QA + sync local->Postman Cloud + deploy to AWS
+#
+# Requires: repo secret POSTMAN_API_KEY (already set). AWS access via GitHub OIDC
+# (role github-actions-postman-deploy, no stored keys). See CI-CD.md.
+
+name: API CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # required for AWS OIDC
+  contents: read
+
+env:
+  ORDERS_QA_COLLECTION: 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
+  AWS_ORDERS_ENV: 53522859-9577f7c6-d8c7-4375-bf19-85b17e418c33   # Orders Production (AWS)
+  AWS_REGION: eu-central-1
+  AWS_INSTANCE_ID: i-0b7891fda81d7e646
+  DEPLOY_ROLE: arn:aws:iam::005904641462:role/github-actions-postman-deploy
+
+jobs:
+  test:
+    name: Lint + QA
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Spec lint (local specs — the Spec Hub source of truth)
+        run: |
+          for f in orders.yaml payments.yaml users.yaml; do
+            echo "== lint $f =="
+            postman spec lint "$f"
+          done
+      - name: QA collection (Orders → AWS)
+        run: postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}"
+
+  release:
+    name: Sync to Cloud + Deploy to AWS
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Sync local -> Postman Cloud (publish Cloud View)
+        run: |
+          postman workspace prepare
+          postman workspace push -y
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.DEPLOY_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+      - name: Deploy to AWS (SSM → git pull + redeploy)
+        run: |
+          cat > /tmp/ssm.json <<'JSON'
+          {"commands":["sudo -u ubuntu -H bash -lc 'cd ~/postman-api-catalog-demo && git pull -q && cd runtime-vm && ./deploy-runtime.sh'"]}
+          JSON
+          CID=$(aws ssm send-command --instance-ids "$AWS_INSTANCE_ID" \
+            --document-name AWS-RunShellScript --parameters file:///tmp/ssm.json \
+            --comment "CI deploy ${{ github.sha }}" --query Command.CommandId --output text)
+          echo "SSM command: $CID"
+          for i in $(seq 1 40); do
+            S=$(aws ssm get-command-invocation --command-id "$CID" --instance-id "$AWS_INSTANCE_ID" --query Status --output text 2>/dev/null || echo Pending)
+            echo "status: $S"
+            case "$S" in
+              Success) break ;;
+              Failed|Cancelled|TimedOut)
+                echo "::error::deploy failed"
+                aws ssm get-command-invocation --command-id "$CID" --instance-id "$AWS_INSTANCE_ID" --query StandardErrorContent --output text
+                exit 1 ;;
+            esac
+            sleep 10
+          done
+          aws ssm get-command-invocation --command-id "$CID" --instance-id "$AWS_INSTANCE_ID" --query StandardOutputContent --output text | tail -20

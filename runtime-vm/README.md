@@ -74,12 +74,14 @@ Use the unified [`../control.sh`](../control.sh) (needs `gcp/gcp.env`):
 ./control.sh gcp stop      # shut down -> ~$0 (IPv4 released; catalog keeps 7 days of data)
 ```
 
-## Wire up the Postman environments
+## Postman environments
 
-1. Import `postman/environments/GCP *.environment.yaml` into Postman; set each `baseUrl` to your
-   single host, `https://<HOSTNAME>` (collections append `/orders`, `/payments`, `/users`).
-2. In a demo, switch the collection's environment between **Production \*** (Cloudflare) and
-   **GCP \*** (self-hosted) — same tests, different backend; only the GCP one feeds Runtime Health.
+The workspace has per-cloud environments: **`Production <API> Cloudflare` / `… Google Cloud` /
+`… AWS`** (in `postman/environments/`, linked in `.postman/resources.yaml`). Each `baseUrl` points
+at that backend's host; collections append `/orders`, `/payments`, `/users`.
+
+In a demo, just switch the collection's environment between the Cloudflare / Google Cloud / AWS
+variant — same tests, different backend; only the self-hosted (GCP/AWS) ones feed Runtime Health.
 
 > No GitHub Actions for the GCP backend — it isn't always running. Traffic comes from the on-VM
 > `synthetic-traffic.sh` cron (while the VM is up) and your live demo runs. CI stays Cloudflare-only.
