@@ -12,8 +12,8 @@ const SERVICE = "orders-api";
 const VERSION = "1.0.0";
 
 const seedOrders = () => [
-  { id: "ord-001", customerId: "usr-001", status: "shipped", total: 49.99, currency: "USD" },
-  { id: "ord-002", customerId: "usr-002", status: "pending", total: 129.5, currency: "USD" },
+  { id: "ord-001", customerId: "usr-001", status: "shipped", totalAmount: 49.99, currency: "USD" },
+  { id: "ord-002", customerId: "usr-002", status: "pending", totalAmount: 129.5, currency: "USD" },
 ];
 
 let orders = seedOrders();
@@ -55,15 +55,15 @@ export default {
 
     if (pathname === "/orders" && request.method === "POST") {
       const body = await readJson(request);
-      if (!body || typeof body.customerId !== "string" || typeof body.total !== "number") {
-        return json({ error: "customerId (string) and total (number) are required" }, 400);
+      if (!body || typeof body.customerId !== "string" || typeof body.totalAmount !== "number") {
+        return json({ error: "customerId (string) and totalAmount (number) are required" }, 400);
       }
 
       const order = {
         id: nextId("ord"),
         customerId: body.customerId,
         status: body.status ?? "pending",
-        total: body.total,
+        totalAmount: body.totalAmount,
         currency: body.currency ?? "USD",
       };
       orders.push(order);
@@ -90,16 +90,16 @@ export default {
         if (
           !body ||
           typeof body.customerId !== "string" ||
-          typeof body.total !== "number" ||
+          typeof body.totalAmount !== "number" ||
           typeof body.status !== "string"
         ) {
-          return json({ error: "customerId, total, and status are required" }, 400);
+          return json({ error: "customerId, totalAmount, and status are required" }, 400);
         }
         orders[index] = {
           id: orderId,
           customerId: body.customerId,
           status: body.status,
-          total: body.total,
+          totalAmount: body.totalAmount,
           currency: body.currency ?? orders[index].currency,
         };
         return json(orders[index]);
