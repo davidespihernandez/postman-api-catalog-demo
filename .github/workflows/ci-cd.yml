@@ -30,7 +30,7 @@ jobs:
     name: Lint + QA
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
@@ -50,17 +50,29 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
       - name: Sync local -> Postman Cloud (publish Cloud View)
         run: |
+          set +e
           postman workspace prepare
-          postman workspace push -y
+          out=$(postman workspace push -y 2>&1); rc=$?
+          echo "$out"
+          [ $rc -eq 0 ] && exit 0
+          # Non-zero exit: tolerate ONLY dataset failures (known 401 entitlement quirk —
+          # datasets aren't writable via the CLI). Fail hard on any other resource error.
+          fails=$(echo "$out" | grep 'Failed')
+          nondataset=$(echo "$fails" | grep -vi 'dataset' | grep 'Failed')
+          if [ -z "$fails" ] || [ -n "$nondataset" ]; then
+            echo "::error::workspace push failed for critical resources (or unknown error)"
+            exit 1
+          fi
+          echo "::warning::workspace push: only dataset(s) failed (known 401 quirk) — continuing"
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ env.DEPLOY_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
