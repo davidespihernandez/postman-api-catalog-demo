@@ -1,15 +1,16 @@
 # Postman API Catalog Demo
 
-Real HTTPS APIs for repeatable **API Catalog** demos, on **two backends** you switch between with
-Postman environments:
+Real HTTPS APIs for repeatable **API Catalog** demos, on **three backends** you switch between
+with Postman environments:
 
 ```
-Cloudflare Workers  →  the classic demo (CI/CD, spec, tests)     ./demo.sh
-GCP VM + Insights   →  adds Runtime Health & observed endpoints   ./control.sh gcp …
+Cloudflare Workers  →  the classic demo (CI/CD, spec, tests)         ./demo.sh
+GCP VM + Insights   →  self-hosted twin, on-demand (start/stop)      ./control.sh gcp …
+AWS EC2 + Insights  →  self-hosted twin, always-on (EU, via SSM)     ./control.sh aws …
 ```
 
-The Insights agent can't run on serverless Cloudflare Workers, so the GCP VM hosts a self-hosted
-twin the agent can observe. Both stay live.
+The Insights agent can't run on serverless Cloudflare Workers, so the GCP/AWS VMs host self-hosted
+twins the agent can observe. All stay live; pick one per demo.
 
 Repository: [github.com/davidespihernandez/postman-api-catalog-demo](https://github.com/davidespihernandez/postman-api-catalog-demo)
 
@@ -18,11 +19,13 @@ Repository: [github.com/davidespihernandez/postman-api-catalog-demo](https://git
 | [SE-INSTALL.md](SE-INSTALL.md) | SE one-time setup — Cloudflare (includes deploy) |
 | [DEMO-STEPS.md](DEMO-STEPS.md) | Customer demo (Postman app only) |
 | [CI-CD.md](CI-CD.md) | GitHub Actions + Postman CLI (Orders QA) |
-| [GCP-INSIGHTS.md](GCP-INSIGHTS.md) | **Runtime Health via a free GCP VM + Insights agent** (full replication runbook) |
-| [runtime-vm/README.md](runtime-vm/README.md) | The GCP stack internals (deploy-runtime.sh) |
+| [GCP-INSIGHTS.md](GCP-INSIGHTS.md) | Runtime Health via a **GCP** VM + Insights agent (replication runbook) |
+| [AWS-INSIGHTS.md](AWS-INSIGHTS.md) | Runtime Health via an **AWS** EC2 VM + Insights agent, always-on via SSM (replication runbook) |
+| [runtime-vm/README.md](runtime-vm/README.md) | The shared VM stack internals (deploy-runtime.sh) |
 
-**Two control scripts:** `./demo.sh` manages the Cloudflare backend; `./control.sh <cf\|gcp\|all>
-<start\|stop\|reset\|status\|urls>` manages both (GCP settings in `runtime-vm/gcp/gcp.env`).
+**Control scripts:** `./demo.sh` manages Cloudflare; `./control.sh <cf\|gcp\|aws\|all>
+<start\|stop\|reset\|status\|urls>` manages all three (GCP settings in `runtime-vm/gcp/gcp.env`,
+AWS in `runtime-vm/aws/aws.env`).
 
 ## Setup (before the demo)
 

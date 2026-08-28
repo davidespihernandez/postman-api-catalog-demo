@@ -12,3 +12,6 @@ runtime-vm/gcp/gcp.env
 
 # runtime-vm secrets
 runtime-vm/.env
+
+# AWS control config (per-SE)
+runtime-vm/aws/aws.env
