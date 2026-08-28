@@ -12,8 +12,8 @@ const SERVICE = "orders-api";
 const VERSION = "1.0.0";
 
 const seedOrders = () => [
-  { id: "ord-001", customerId: "usr-001", status: "shipped", total: 49.99, currency: "USD" },
-  { id: "ord-002", customerId: "usr-002", status: "pending", total: 129.5, currency: "USD" },
+  { id: "ord-001", customerId: "usr-001", status: "shipped", totalAmount: 49.99, currency: "USD" },
+  { id: "ord-002", customerId: "usr-002", status: "pending", totalAmount: 129.5, currency: "USD" },
 ];
 
 let orders = seedOrders();
@@ -63,7 +63,7 @@ export default {
         id: nextId("ord"),
         customerId: body.customerId,
         status: body.status ?? "pending",
-        total: body.total,
+        totalAmount: body.total,
         currency: body.currency ?? "USD",
       };
       orders.push(order);
@@ -99,7 +99,7 @@ export default {
           id: orderId,
           customerId: body.customerId,
           status: body.status,
-          total: body.total,
+          totalAmount: body.total,
           currency: body.currency ?? orders[index].currency,
         };
         return json(orders[index]);
@@ -113,7 +113,11 @@ export default {
         if (!body || typeof body !== "object") {
           return json({ error: "Request body required" }, 400);
         }
-        orders[index] = { ...orders[index], ...body, id: orderId };
+        const { total: patchTotal, ...restBody } = body;
+        const patchFields = patchTotal !== undefined
+          ? { ...restBody, totalAmount: patchTotal }
+          : restBody;
+        orders[index] = { ...orders[index], ...patchFields, id: orderId };
         return json(orders[index]);
       }
 
