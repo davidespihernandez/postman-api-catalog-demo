@@ -1,6 +1,8 @@
 # Real CI/CD pipeline — Postman local (git) is the source of truth.
-#   PR -> main : spec lint + QA collection (gate)
-#   push main  : spec lint + QA + sync local->Postman Cloud + deploy to AWS
+#   PR -> main : spec lint + QA against the FRESHLY-BUILT code (gate; a breaking change
+#                fails here, so it can't be merged/deployed)
+#   push main  : same gate, then sync local->Postman Cloud, deploy to AWS, post-deploy smoke
+#   Deploy only runs if the test gate passes (release job `needs: test`).
 #
 # Requires: repo secret POSTMAN_API_KEY (already set). AWS access via GitHub OIDC
 # (role github-actions-postman-deploy, no stored keys). See CI-CD.md.
@@ -21,16 +23,22 @@ permissions:
 env:
   ORDERS_QA_COLLECTION: 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
   AWS_ORDERS_ENV: 53522859-9577f7c6-d8c7-4375-bf19-85b17e418c33   # Orders Production (AWS)
+  AWS_HOST: 18-157-170-15.nip.io
   AWS_REGION: eu-central-1
   AWS_INSTANCE_ID: i-0b7891fda81d7e646
   DEPLOY_ROLE: arn:aws:iam::005904641462:role/github-actions-postman-deploy
 
 jobs:
   test:
-    name: Lint + QA
+    name: Lint + QA (freshly-built code)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Install deps
+        run: npm ci
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
@@ -41,8 +49,19 @@ jobs:
             echo "== lint $f =="
             postman spec lint "$f"
           done
-      - name: QA collection (Orders → AWS)
-        run: postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}"
+      - name: QA collection (against THIS commit's Orders code)
+        run: |
+          # Run the pushed Orders worker locally so QA validates the new code,
+          # not the currently-deployed API. A breaking change fails here and
+          # blocks the deploy (the release job needs this job to pass).
+          npx wrangler dev --config apis/orders/wrangler.toml --ip 127.0.0.1 --port 8787 &
+          WPID=$!
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8787/health >/dev/null 2>&1 && break; sleep 2; done
+          curl -sf http://127.0.0.1:8787/health >/dev/null 2>&1 || { echo "::error::Orders API failed to start"; kill $WPID 2>/dev/null; exit 1; }
+          postman collection run "${{ env.ORDERS_QA_COLLECTION }}" --env-var "baseUrl=http://127.0.0.1:8787"
+          rc=$?
+          kill $WPID 2>/dev/null || true
+          exit $rc
 
   release:
     name: Sync to Cloud + Deploy to AWS
@@ -72,7 +91,7 @@ jobs:
           fi
           echo "::warning::workspace push: only dataset(s) failed (known 401 quirk) — continuing"
       - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ env.DEPLOY_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
@@ -98,3 +117,8 @@ jobs:
             sleep 10
           done
           aws ssm get-command-invocation --command-id "$CID" --instance-id "$AWS_INSTANCE_ID" --query StandardOutputContent --output text | tail -20
+      - name: Post-deploy smoke (QA against live AWS)
+        run: |
+          # confirm the deployed AWS API passes the same QA suite
+          for i in $(seq 1 20); do curl -sf "https://$AWS_HOST/health" >/dev/null 2>&1 && break; sleep 4; done
+          postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}"
