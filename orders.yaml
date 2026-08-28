@@ -91,8 +91,8 @@
                                             "id": "ord-001",
                                             "customerId": "usr-001",
                                             "status": "shipped",
-                                            "currency": "USD",
-                                            "totalAmount": 49.99
+                                            "total": 49.99,
+                                            "currency": "USD"
                                         }
                                     ],
                                     "count": 1
@@ -139,8 +139,8 @@
                                     "id": "ord-a1b2c3d4",
                                     "customerId": "usr-002",
                                     "status": "pending",
-                                    "currency": "USD",
-                                    "totalAmount": 99.5
+                                    "total": 99.5,
+                                    "currency": "USD"
                                 }
                             }
                         }
@@ -192,8 +192,8 @@
                                     "id": "ord-001",
                                     "customerId": "usr-001",
                                     "status": "shipped",
-                                    "currency": "USD",
-                                    "totalAmount": 49.99
+                                    "total": 49.99,
+                                    "currency": "USD"
                                 }
                             }
                         }
@@ -250,8 +250,8 @@
                                     "id": "ord-001",
                                     "customerId": "usr-003",
                                     "status": "processing",
-                                    "currency": "EUR",
-                                    "totalAmount": 149.99
+                                    "total": 149.99,
+                                    "currency": "EUR"
                                 }
                             }
                         }
@@ -312,8 +312,8 @@
                                     "id": "ord-001",
                                     "customerId": "usr-003",
                                     "status": "shipped",
-                                    "currency": "EUR",
-                                    "totalAmount": 149.99
+                                    "total": 149.99,
+                                    "currency": "EUR"
                                 }
                             }
                         }
@@ -451,7 +451,7 @@
                     "id",
                     "customerId",
                     "status",
-                    "totalAmount",
+                    "total",
                     "currency"
                 ],
                 "properties": {
@@ -476,19 +476,19 @@
                         ],
                         "example": "pending"
                     },
+                    "total": {
+                        "type": "number",
+                        "format": "double",
+                        "minimum": 0,
+                        "description": "Order total amount",
+                        "example": 49.99
+                    },
                     "currency": {
                         "type": "string",
                         "description": "ISO 4217 currency code",
                         "minLength": 3,
                         "maxLength": 3,
                         "example": "USD"
-                    },
-                    "totalAmount": {
-                        "type": "number",
-                        "format": "double",
-                        "minimum": 0,
-                        "description": "Order total amount",
-                        "example": 49.99
                     }
                 }
             },
