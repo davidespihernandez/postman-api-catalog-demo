@@ -56,7 +56,9 @@ set -a; source "$ENV_FILE"; set +a
 ORDERS_PORT="${ORDERS_PORT:-8787}"
 PAYMENTS_PORT="${PAYMENTS_PORT:-8788}"
 USERS_PORT="${USERS_PORT:-8789}"
-RUN_USER="${SUDO_USER:-$USER}"
+RUN_USER="${RUN_USER:-${SUDO_USER:-$USER}}"
+[ "$RUN_USER" = "root" ] && RUN_USER="ubuntu"   # never run the services as root
+                                                # (SSM runs as root; sudo -u ubuntu leaves SUDO_USER=root)
 
 echo "==> Repo root: $REPO_ROOT   Hostname: $HOSTNAME   Service user: $RUN_USER"
 
@@ -101,12 +103,26 @@ fi
 AGENT_BIN="$(command -v postman-insights-agent)"
 
 # ---------------------------------------------------------------------------
-# 2. Install repo deps (wrangler comes from devDependencies)
+# 2. Install repo deps (wrangler from devDependencies) — only when needed.
+#    Skips npm ci when node_modules is intact and package-lock.json is unchanged,
+#    so routine code-only redeploys are fast (~seconds). On an actual install we
+#    stop the services + normalize ownership first (avoids EACCES on the miniflare
+#    cache in node_modules/.mf if an earlier run left root-owned files).
 # ---------------------------------------------------------------------------
-echo "==> npm ci at repo root"
-( cd "$REPO_ROOT" && npm ci )
 WRANGLER="$REPO_ROOT/node_modules/.bin/wrangler"
-[ -x "$WRANGLER" ] || { echo "ERROR: wrangler not found at $WRANGLER after npm ci"; exit 1; }
+LOCK="$REPO_ROOT/package-lock.json"
+MARK="$REPO_ROOT/node_modules/.deploy-lock-hash"
+lock_hash() { sha256sum "$LOCK" 2>/dev/null | cut -d' ' -f1; }
+if [ -x "$WRANGLER" ] && [ -f "$MARK" ] && [ "$(lock_hash)" = "$(cat "$MARK" 2>/dev/null)" ]; then
+  echo "==> deps unchanged — skipping npm ci"
+else
+  echo "==> installing deps (npm ci)"
+  sudo systemctl stop wrangler-orders wrangler-payments wrangler-users 2>/dev/null || true
+  sudo chown -R "$RUN_USER":"$RUN_USER" "$REPO_ROOT" 2>/dev/null || true
+  ( cd "$REPO_ROOT" && npm ci )
+  lock_hash > "$MARK"
+fi
+[ -x "$WRANGLER" ] || { echo "ERROR: wrangler not found at $WRANGLER"; exit 1; }
 
 # ---------------------------------------------------------------------------
 # 3. systemd services — one wrangler dev per API
