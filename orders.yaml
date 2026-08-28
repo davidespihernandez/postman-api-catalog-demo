@@ -91,7 +91,7 @@
                                             "id": "ord-001",
                                             "customerId": "usr-001",
                                             "status": "shipped",
-                                            "totalAmount": 49.99,
+                                            "total": 49.99,
                                             "currency": "USD"
                                         }
                                     ],
@@ -120,7 +120,7 @@
                             },
                             "example": {
                                 "customerId": "usr-002",
-                                "totalAmount": 99.5,
+                                "total": 99.5,
                                 "status": "pending",
                                 "currency": "USD"
                             }
@@ -139,7 +139,7 @@
                                     "id": "ord-a1b2c3d4",
                                     "customerId": "usr-002",
                                     "status": "pending",
-                                    "totalAmount": 99.5,
+                                    "total": 99.5,
                                     "currency": "USD"
                                 }
                             }
@@ -192,7 +192,7 @@
                                     "id": "ord-001",
                                     "customerId": "usr-001",
                                     "status": "shipped",
-                                    "totalAmount": 49.99,
+                                    "total": 49.99,
                                     "currency": "USD"
                                 }
                             }
@@ -231,7 +231,7 @@
                             },
                             "example": {
                                 "customerId": "usr-003",
-                                "totalAmount": 149.99,
+                                "total": 149.99,
                                 "status": "processing",
                                 "currency": "EUR"
                             }
@@ -250,7 +250,7 @@
                                     "id": "ord-001",
                                     "customerId": "usr-003",
                                     "status": "processing",
-                                    "totalAmount": 149.99,
+                                    "total": 149.99,
                                     "currency": "EUR"
                                 }
                             }
@@ -312,7 +312,7 @@
                                     "id": "ord-001",
                                     "customerId": "usr-003",
                                     "status": "shipped",
-                                    "totalAmount": 149.99,
+                                    "total": 149.99,
                                     "currency": "EUR"
                                 }
                             }
@@ -451,7 +451,7 @@
                     "id",
                     "customerId",
                     "status",
-                    "totalAmount",
+                    "total",
                     "currency"
                 ],
                 "properties": {
@@ -476,7 +476,7 @@
                         ],
                         "example": "pending"
                     },
-                    "totalAmount": {
+                    "total": {
                         "type": "number",
                         "format": "double",
                         "minimum": 0,
@@ -518,7 +518,7 @@
                 "type": "object",
                 "required": [
                     "customerId",
-                    "totalAmount"
+                    "total"
                 ],
                 "properties": {
                     "customerId": {
@@ -526,7 +526,7 @@
                         "description": "Customer placing the order",
                         "example": "usr-002"
                     },
-                    "totalAmount": {
+                    "total": {
                         "type": "number",
                         "format": "double",
                         "minimum": 0,
@@ -558,7 +558,7 @@
                 "type": "object",
                 "required": [
                     "customerId",
-                    "totalAmount",
+                    "total",
                     "status"
                 ],
                 "properties": {
@@ -566,7 +566,7 @@
                         "type": "string",
                         "example": "usr-003"
                     },
-                    "totalAmount": {
+                    "total": {
                         "type": "number",
                         "format": "double",
                         "minimum": 0,
@@ -598,7 +598,7 @@
                         "type": "string",
                         "example": "usr-003"
                     },
-                    "totalAmount": {
+                    "total": {
                         "type": "number",
                         "format": "double",
                         "minimum": 0,
