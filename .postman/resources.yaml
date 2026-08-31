@@ -44,8 +44,6 @@ cloudResources:
     ../postman/datasets/Orders get detail test/Orders get detail test.dataset.yaml: 9ac3844b-d233-497e-b2b3-2f0bc0f6f0e2
   documents:
     ../postman/documents/API documentation.md: 7b0ff53e-be54-444f-b7b9-50275b264f21
-  simulations:
-    ../postman/simulations/new-simulation.sim.yaml: 01a03d77-ad90-7263-950c-da0c35c05286
 resourceNameMappings:
   specs:
     - ../index.yaml: Notifications
