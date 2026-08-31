@@ -79,6 +79,7 @@ jobs:
       - name: Sync local -> Postman Cloud (publish Cloud View)
         run: |
           set +e
+          postman workspace lint --fix || true   # auto-drop dangling resource refs (WSP014)
           postman workspace prepare
           out=$(postman workspace push -y 2>&1); rc=$?
           echo "$out"
