@@ -1,6 +1,6 @@
 # Retail Commerce APIs — Documentation
 
-This workspace contains the API documentation for the three core services of the Retail Commerce platform: **Orders**, **Payments**, and **Users**. All services are deployed as Cloudflare Workers and expose a RESTful JSON API.
+This workspace contains the API documentation for the three core services of the Retail Commerce platform: **Orders**, **Payments**, and **Users**. All services are self-hosted on AWS (Node/Express behind Caddy) and expose a RESTful JSON API.
 
 ## Overview
 

@@ -11,7 +11,7 @@ module.exports = {
     // Select a target at runtime with: postman application test --target <name>
     targets: {
         default: {
-            environment: 'Production Orders',
+            environment: 'Production Orders AWS',
             // Referenced by name. UID for reference / disambiguation:
             // 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
             collections: [
@@ -38,7 +38,7 @@ module.exports = {
 
     // Drop non-API noise so the dashboard shows only real Orders API traffic:
     // the app's own assets/HMR served from localhost, and CORS preflights.
-    // (API calls go to *.workers.dev, so filtering localhost is safe.)
+    // (API calls go to the AWS host, so filtering localhost is safe.)
     filters: {
         urlPatterns: ['localhost:5173'],
         methods: ['OPTIONS'],

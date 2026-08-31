@@ -3,13 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Simple Orders UI for the Postman API Catalog demo — drives the Cloudflare Orders API from a browser so Postman can capture the traffic during Playwright tests.",
+  "description": "Simple Orders UI for the Postman API Catalog demo — drives the Orders API (self-hosted on AWS) from a browser so Postman can capture the traffic during Playwright tests.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --port 4173",
-    "test": "playwright test",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name=postman-api-catalog-demo-orders-ui"
+    "test": "playwright test"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -19,7 +18,6 @@
     "@playwright/test": "^1.62.1",
     "@vitejs/plugin-react": "^4.3.1",
     "postman-playwright": "^1.1.1",
-    "vite": "^5.4.8",
-    "wrangler": "^4.14.0"
+    "vite": "^5.4.8"
   }
 }

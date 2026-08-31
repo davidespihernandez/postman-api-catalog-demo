@@ -7,7 +7,7 @@
     },
     "servers": [
         {
-            "url": "https://postman-api-catalog-demo-users.davidespi.workers.dev",
+            "url": "https://18-157-170-15.nip.io",
             "description": "Deployed worker"
         }
     ],

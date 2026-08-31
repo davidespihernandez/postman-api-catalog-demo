@@ -2,5 +2,5 @@ name: Production Users AWS
 color: null
 values:
   - key: baseUrl
-    value: https://postman-api-catalog-demo-users.davidespi.workers.dev
+    value: https://18-157-170-15.nip.io
     enabled: true

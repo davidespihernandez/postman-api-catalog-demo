@@ -1,42 +1,36 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  deploy-runtime.sh  —  SELF-HOSTED API + Postman Insights stack (GCP VM)
+#  deploy-runtime.sh  —  self-hosted API + Postman Insights stack (AWS VM)
 # =============================================================================
-#  This is NOT the Cloudflare demo. It stands up a self-hosted copy of the APIs
-#  on an GCP VM plus the Postman Insights agent, so the Insights-powered parts
-#  of the API Catalog light up (Runtime Health, observed endpoints, error rates).
-#
-#    Cloudflare Workers demo ......... ../demo.sh        (run on your laptop)
-#    Self-hosted API + Insights ...... this script       (run ON the GCP VM)
-#
-#  The two are independent and both stay live — see ../GCP-INSIGHTS.md.
+#  Stands up the demo APIs + the Postman Insights agent on the VM, so the
+#  Insights-powered parts of the API Catalog light up (Runtime Health, observed
+#  endpoints, error rates), plus the async MQTT bridge and refund webhook.
 # =============================================================================
 #
-# Run ON the GCP VM (Ubuntu 22.04), from the repo's runtime-vm/ dir:
+# Run ON the VM (Ubuntu 22.04), from the repo's runtime-vm/ dir:
 #   cd postman-api-catalog-demo/runtime-vm
-#   cp .env.example .env && nano .env      # fill HOSTNAME, POSTMAN_API_KEY, INSIGHTS_*
+#   cp .env.example .env && nano .env      # HOSTNAME, POSTMAN_API_KEY, INSIGHTS_*, webhook URLs
 #   ./deploy-runtime.sh
+# (Reach the VM via AWS SSM — public SSH is blocked by the subnet NACL. CI runs this same script.)
 #
 # What it does (all native, no Docker):
 #   - installs Node 20, Caddy, and the Postman Insights agent
-#   - `npm ci` at the repo root (pulls wrangler from devDependencies)
-#   - runs each API as a systemd service via `wrangler dev` on a loopback port
-#   - configures Caddy to terminate TLS on <HOSTNAME> and path-route to those ports
-#   - (if DUCKDNS_* set) keeps <HOSTNAME> pointed at the VM's current public IP
-#   - runs the Insights agent as a systemd service, reporting to your workspace/system-env
+#   - pins webhook hosts in /etc/hosts (glibc can't follow Postman's *.webhook.pstmn.io CNAME)
+#   - `npm ci` at the repo root (express + mqtt; skipped when package-lock is unchanged)
+#   - runs each API as a systemd `node` (Express) service on a loopback port (payments gets
+#     REFUND_WEBHOOK_URL); Caddy terminates TLS on <HOSTNAME> and path-routes to them
+#   - runs the Insights agent + (if NOTIFICATION_WEBHOOK_URL set) the MQTT bridge as services
 #
 # Idempotent: safe to re-run after editing .env.
 set -euo pipefail
 
 echo "============================================================"
-echo " deploy-runtime.sh — SELF-HOSTED API + Insights stack (VM)"
-echo " (Cloudflare demo is a separate script: ../demo.sh)"
+echo " deploy-runtime.sh — self-hosted API + Insights stack (AWS VM)"
 echo "============================================================"
 
-# Sanity: this is meant to run on the Linux VM, not the macOS laptop that runs demo.sh.
+# Sanity: this is meant to run on the Linux VM, not a macOS laptop.
 if [ "$(uname -s)" != "Linux" ]; then
-  echo "WARNING: this is not Linux. deploy-runtime.sh is meant to run ON the GCP VM."
-  echo "         For the Cloudflare Workers demo on your laptop, use ../demo.sh instead."
+  echo "WARNING: not Linux. deploy-runtime.sh is meant to run ON the AWS VM (via SSM)."
   read -r -p "Continue anyway? [y/N] " ans
   [ "$ans" = "y" ] || [ "$ans" = "Y" ] || { echo "Aborted."; exit 1; }
 fi
@@ -63,6 +57,27 @@ RUN_USER="${RUN_USER:-${SUDO_USER:-$USER}}"
 echo "==> Repo root: $REPO_ROOT   Hostname: $HOSTNAME   Service user: $RUN_USER"
 
 # ---------------------------------------------------------------------------
+# 0a. Pin webhook DNS. Postman's *.webhook.pstmn.io resolves via a CNAME whose
+#     target contains a literal "*", which glibc getaddrinfo (used by fetch/curl,
+#     i.e. the MQTT bridge and the payment-refund webhook) refuses to follow on
+#     Linux — so outbound webhooks silently fail (they worked on Cloudflare's edge).
+#     systemd-resolved CAN resolve it, so we pin host->IP in /etc/hosts (glibc reads
+#     that first, bypassing the broken CNAME). Generic: pins whatever URLs are set.
+# ---------------------------------------------------------------------------
+pin_webhook_dns() {
+  local url="$1"; [ -n "$url" ] || return 0
+  local host; host=$(printf '%s' "$url" | sed -E 's#^[a-z]+://##; s#[/:].*##')
+  [ -n "$host" ] || return 0
+  local ips; ips=$(resolvectl query "$host" 2>/dev/null | grep -oE '([0-9]{1,3}\.){3}[0-9]{1,3}' | sort -u)
+  [ -n "$ips" ] || { echo "==> WARN: could not resolve $host to pin in /etc/hosts"; return 0; }
+  sudo sed -i "\#[[:space:]]${host}\$#d" /etc/hosts 2>/dev/null || true
+  for ip in $ips; do echo "$ip $host" | sudo tee -a /etc/hosts >/dev/null; done
+  echo "==> pinned $host -> $(echo $ips | tr '\n' ' ')in /etc/hosts"
+}
+pin_webhook_dns "${NOTIFICATION_WEBHOOK_URL:-}"
+pin_webhook_dns "${REFUND_WEBHOOK_URL:-}"
+
+# ---------------------------------------------------------------------------
 # 0. Swap — small-RAM boxes (GCP/AWS 1 GB micro) need it so the stack doesn't OOM.
 #    Auto-skipped when the VM already has >=2 GB RAM or swap is already on.
 # ---------------------------------------------------------------------------
@@ -81,9 +96,9 @@ fi
 # ---------------------------------------------------------------------------
 # 1. System packages: Node 20, Caddy, curl
 # ---------------------------------------------------------------------------
-if ! command -v node >/dev/null || [ "$(node -v | cut -c2-3)" -lt 22 ]; then
-  echo "==> Installing Node 22 (Wrangler requires Node >= 22)"
-  curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+if ! command -v node >/dev/null || [ "$(node -v | cut -c2-3)" -lt 20 ]; then
+  echo "==> Installing Node 20 (runtime for the Express API servers)"
+  curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
   sudo apt-get install -y nodejs
 fi
 
@@ -103,48 +118,55 @@ fi
 AGENT_BIN="$(command -v postman-insights-agent)"
 
 # ---------------------------------------------------------------------------
-# 2. Install repo deps (wrangler from devDependencies) — only when needed.
+# 2. Install repo deps (express, mqtt) — only when needed.
 #    Skips npm ci when node_modules is intact and package-lock.json is unchanged,
 #    so routine code-only redeploys are fast (~seconds). On an actual install we
-#    stop the services + normalize ownership first (avoids EACCES on the miniflare
-#    cache in node_modules/.mf if an earlier run left root-owned files).
+#    stop the API services + normalize ownership first.
 # ---------------------------------------------------------------------------
-WRANGLER="$REPO_ROOT/node_modules/.bin/wrangler"
+DEP="$REPO_ROOT/node_modules/express"
 LOCK="$REPO_ROOT/package-lock.json"
 MARK="$REPO_ROOT/node_modules/.deploy-lock-hash"
 lock_hash() { sha256sum "$LOCK" 2>/dev/null | cut -d' ' -f1; }
-if [ -x "$WRANGLER" ] && [ -f "$MARK" ] && [ "$(lock_hash)" = "$(cat "$MARK" 2>/dev/null)" ]; then
+if [ -d "$DEP" ] && [ -f "$MARK" ] && [ "$(lock_hash)" = "$(cat "$MARK" 2>/dev/null)" ]; then
   echo "==> deps unchanged — skipping npm ci"
 else
   echo "==> installing deps (npm ci)"
-  sudo systemctl stop wrangler-orders wrangler-payments wrangler-users 2>/dev/null || true
+  sudo systemctl stop api-orders api-payments api-users 2>/dev/null || true
   sudo chown -R "$RUN_USER":"$RUN_USER" "$REPO_ROOT" 2>/dev/null || true
   ( cd "$REPO_ROOT" && npm ci )
   lock_hash > "$MARK"
 fi
-[ -x "$WRANGLER" ] || { echo "ERROR: wrangler not found at $WRANGLER"; exit 1; }
+[ -d "$DEP" ] || { echo "ERROR: express not installed (npm ci failed?)"; exit 1; }
 
 # ---------------------------------------------------------------------------
-# 3. systemd services — one wrangler dev per API
-#    NOTE: wrangler dev runs in LOCAL mode (workerd) — no Cloudflare login needed.
-#          Distinct --inspector-port avoids the default 9229 clashing across the three.
+# 3. systemd services — one Node (Express) server per API, on a loopback port.
 # ---------------------------------------------------------------------------
-write_wrangler_unit() {
-  local name="$1" config="$2" port="$3" inspector="$4"
-  echo "==> systemd unit: wrangler-$name (port $port)"
-  sudo tee "/etc/systemd/system/wrangler-$name.service" >/dev/null <<UNIT
+NODE="$(command -v node)"
+# Remove superseded wrangler-* units from the earlier (Cloudflare-Worker) stack.
+for old in wrangler-orders wrangler-payments wrangler-users; do
+  if [ -f "/etc/systemd/system/$old.service" ]; then
+    echo "==> removing old unit: $old"
+    sudo systemctl disable --now "$old" 2>/dev/null || true
+    sudo rm -f "/etc/systemd/system/$old.service"
+  fi
+done
+
+write_api_unit() {
+  local name="$1" port="$2" extra_env="${3:-}"
+  echo "==> systemd unit: api-$name (port $port)"
+  sudo tee "/etc/systemd/system/api-$name.service" >/dev/null <<UNIT
 [Unit]
-Description=wrangler dev — $name API (Postman catalog demo)
+Description=$name API (Node/Express) — Postman catalog demo
 After=network.target
 
 [Service]
 Type=simple
 User=$RUN_USER
 WorkingDirectory=$REPO_ROOT
-Environment=CI=1
-Environment=WRANGLER_SEND_METRICS=false
+Environment=PORT=$port
 Environment=HOME=/home/$RUN_USER
-ExecStart=$WRANGLER dev --config $config --ip 127.0.0.1 --port $port --inspector-port $inspector
+$extra_env
+ExecStart=$NODE $REPO_ROOT/apis/$name/src/server.mjs
 Restart=always
 RestartSec=3
 
@@ -153,9 +175,12 @@ WantedBy=multi-user.target
 UNIT
 }
 
-write_wrangler_unit orders   "apis/orders/wrangler.toml"   "$ORDERS_PORT"   9400
-write_wrangler_unit payments "apis/payments/wrangler.toml" "$PAYMENTS_PORT" 9401
-write_wrangler_unit users    "apis/users/wrangler.toml"    "$USERS_PORT"    9402
+# Payments reads env.REFUND_WEBHOOK_URL to POST the payment.refunded webhook on /payments/refund.
+PAY_ENV=""
+[ -n "${REFUND_WEBHOOK_URL:-}" ] && PAY_ENV="Environment=REFUND_WEBHOOK_URL=$REFUND_WEBHOOK_URL"
+write_api_unit orders   "$ORDERS_PORT"
+write_api_unit payments "$PAYMENTS_PORT" "$PAY_ENV"
+write_api_unit users    "$USERS_PORT"
 
 # ---------------------------------------------------------------------------
 # 4. systemd service — Postman Insights agent (needs root for packet capture)
@@ -166,7 +191,7 @@ echo "==> systemd unit: postman-insights"
 sudo tee "/etc/systemd/system/postman-insights.service" >/dev/null <<UNIT
 [Unit]
 Description=Postman Insights agent — observe catalog demo APIs
-After=network.target wrangler-orders.service wrangler-payments.service wrangler-users.service
+After=network.target api-orders.service api-payments.service api-users.service
 
 [Service]
 Type=simple
@@ -181,41 +206,39 @@ WantedBy=multi-user.target
 UNIT
 
 # ---------------------------------------------------------------------------
-# 4b. DuckDNS updater — keeps $HOSTNAME pointed at the VM's current public IP.
-#     The GCP ephemeral IP changes on each start/stop, so refresh on boot + every 5 min.
+# 4b. MQTT -> Postman webhook bridge (async notifications demo).
+#     Always-on consumer so nothing has to be started on a laptop.
+#     Only created when NOTIFICATION_WEBHOOK_URL is set in .env.
 # ---------------------------------------------------------------------------
-if [ -n "${DUCKDNS_TOKEN:-}" ] && [ -n "${DUCKDNS_SUBDOMAIN:-}" ]; then
-  echo "==> systemd unit: duckdns updater ($DUCKDNS_SUBDOMAIN.duckdns.org)"
-  sudo tee /etc/systemd/system/duckdns.service >/dev/null <<UNIT
+if [ -n "${NOTIFICATION_WEBHOOK_URL:-}" ]; then
+  echo "==> systemd unit: mqtt-bridge"
+  sudo tee /etc/systemd/system/mqtt-bridge.service >/dev/null <<UNIT
 [Unit]
-Description=DuckDNS updater for $DUCKDNS_SUBDOMAIN.duckdns.org
+Description=MQTT -> Postman webhook bridge (notifications demo)
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-Type=oneshot
-ExecStart=/usr/bin/curl -fsS "https://www.duckdns.org/update?domains=$DUCKDNS_SUBDOMAIN&token=$DUCKDNS_TOKEN&ip="
-UNIT
-  sudo tee /etc/systemd/system/duckdns.timer >/dev/null <<UNIT
-[Unit]
-Description=Refresh DuckDNS every 5 minutes
-
-[Timer]
-OnBootSec=15
-OnUnitActiveSec=5min
+Type=simple
+User=$RUN_USER
+WorkingDirectory=$REPO_ROOT
+Environment=NOTIFICATION_WEBHOOK_URL=$NOTIFICATION_WEBHOOK_URL
+Environment=MQTT_BROKER_URL=${MQTT_BROKER_URL:-mqtt://broker.hivemq.com:1883}
+Environment=MQTT_TOPIC=${MQTT_TOPIC:-postman-api-catalog-demo/notifications}
+ExecStart=$(command -v node) $REPO_ROOT/scripts/mqtt-webhook-bridge.mjs
+Restart=always
+RestartSec=5
 
 [Install]
-WantedBy=timers.target
+WantedBy=multi-user.target
 UNIT
   sudo systemctl daemon-reload
-  sudo systemctl enable --now duckdns.timer
-  sudo systemctl start duckdns.service   # set the A record to the current IP now
-  echo "==> DuckDNS record updated for $DUCKDNS_SUBDOMAIN.duckdns.org"
+  sudo systemctl enable --now mqtt-bridge
 fi
 
 # ---------------------------------------------------------------------------
-# 5. Caddy — TLS + reverse proxy. Single host ($HOSTNAME), path-routed to the
-#    three backends (DuckDNS gives one name, so we route by top-level path).
+# 5. Caddy — TLS + reverse proxy. Single host ($HOSTNAME, e.g. an Elastic-IP
+#    nip.io name), path-routed to the three backends by top-level path.
 #    Paths are NOT stripped — each worker expects /orders, /payments, /users at its root.
 # ---------------------------------------------------------------------------
 echo "==> Writing /etc/caddy/Caddyfile"
@@ -245,7 +268,7 @@ CADDY
 # ---------------------------------------------------------------------------
 echo "==> Starting services"
 sudo systemctl daemon-reload
-sudo systemctl enable --now wrangler-orders wrangler-payments wrangler-users postman-insights
+sudo systemctl enable --now api-orders api-payments api-users postman-insights
 sudo systemctl reload caddy || sudo systemctl restart caddy
 
 echo
@@ -255,7 +278,7 @@ echo "     orders:   https://$HOSTNAME/orders"
 echo "     payments: https://$HOSTNAME/payments"
 echo "     users:    https://$HOSTNAME/users"
 echo
-echo "Check status:   systemctl status wrangler-orders postman-insights caddy"
+echo "Check status:   systemctl status api-orders postman-insights caddy"
 echo "Tail agent log: journalctl -u postman-insights -f"
 echo
 echo "NOTE: first HTTPS hit may take a few seconds while Caddy fetches Let's Encrypt certs."

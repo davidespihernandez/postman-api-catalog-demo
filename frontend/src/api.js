@@ -1,10 +1,10 @@
-// Thin client for the Cloudflare Orders Worker.
+// Thin client for the Orders API (self-hosted on AWS, path-routed under one host).
 // Every call here becomes browser -> API network traffic that Postman captures
 // during the Playwright run and matches against the "Orders - QA" collection.
 
 const BASE =
   import.meta.env.VITE_ORDERS_API_URL ??
-  "https://postman-api-catalog-demo-orders.davidespi.workers.dev";
+  "https://18-157-170-15.nip.io";
 
 async function handle(res) {
   if (res.status === 204) return null;

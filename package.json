@@ -2,26 +2,19 @@
   "name": "postman-api-catalog-demo",
   "version": "1.0.0",
   "private": true,
-  "description": "Repeatable Postman API Catalog demo with Cloudflare Workers backends",
+  "description": "Repeatable Postman API Catalog demo — APIs self-hosted on AWS (Node/Express), with Insights, MQTT notifications, and refund webhook",
   "repository": {
     "type": "git",
     "url": "https://github.com/davidespihernandez/postman-api-catalog-demo.git"
   },
   "type": "module",
   "scripts": {
-    "deploy:orders": "wrangler deploy --config apis/orders/wrangler.toml",
-    "deploy:payments": "wrangler deploy --config apis/payments/wrangler.toml",
-    "deploy:users": "wrangler deploy --config apis/users/wrangler.toml",
-    "delete:payments": "wrangler delete --config apis/payments/wrangler.toml --force",
-    "demo": "./demo.sh",
     "mqtt-bridge": "node scripts/mqtt-webhook-bridge.mjs",
     "test:ui": "frontend/node_modules/.bin/playwright test --config frontend/playwright.config.js",
     "app:test": "postman app test --report-events"
   },
-  "devDependencies": {
-    "wrangler": "^4.14.0"
-  },
   "dependencies": {
+    "express": "^4.21.2",
     "mqtt": "^5.10.0"
   },
   "engines": {

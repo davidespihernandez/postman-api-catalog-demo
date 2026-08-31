@@ -2,7 +2,7 @@ name: Production Payments AWS
 color: null
 values:
   - key: baseUrl
-    value: https://postman-api-catalog-demo-payments.davidespi.workers.dev
+    value: https://18-157-170-15.nip.io
     enabled: true
   - key: refundWebhookUrl
     value: https://7ygtn6bgtcbmv8k2oigij4xc0.webhook.pstmn.io/

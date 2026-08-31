@@ -1,6 +1,6 @@
 # Orders UI + Playwright — Postman Browser Testing Demo
 
-A minimal React (Vite) frontend for the Cloudflare **Orders** API, plus a
+A minimal React (Vite) frontend for the **Orders** API (self-hosted on AWS), plus a
 Playwright test wired into **Postman's browser testing** integration. The point
 of the demo: drive the UI in a real browser, and have Postman capture every
 browser → API call and match it against your `Orders - QA` collection in the
@@ -17,8 +17,7 @@ frontend/
 ## Prerequisites
 
 - Node 18+
-- The Cloudflare Orders worker deployed (default:
-  `https://postman-api-catalog-demo-orders.davidespi.workers.dev`)
+- The Orders API reachable (default: `https://18-157-170-15.nip.io`)
 - Postman CLI + a Postman account with **Application Inventory / browser testing**
   enabled
 
@@ -55,7 +54,7 @@ cd ..                               # repo root
 npm install -g postman-cli
 postman login                       # or set POSTMAN_API_KEY
 postman app init                    # collection    = "Orders - Doc" (or "Orders - QA")
-                                    #   environment  = "Production Orders"
+                                    #   environment  = "Production Orders AWS"
                                     #   test script  = "npm run test:ui"
 CI=true postman app test            # runs Playwright, captures traffic
 ```
@@ -68,16 +67,10 @@ API contract).
 > If the init picker doesn't list `npm run test:ui`, choose **"Enter manually"**
 > and type it (or `cd frontend && npx playwright test`).
 
-## Deploy the UI to Cloudflare Pages (optional)
-
-```bash
-npm run deploy            # builds and runs `wrangler pages deploy dist`
-```
-
 ## Notes
 
 - The Orders API stores data **in memory**, so it resets to two seed rows on
-  every worker cold start / redeploy. The test creates its own order, so it is
+  every service restart / redeploy. The test creates its own order, so it is
   self-contained.
 - `DELETE` returns `204`; Chromium reports empty 204s as `ERR_ABORTED`, so the
   test asserts on the UI (row removed) rather than `waitForResponse`.

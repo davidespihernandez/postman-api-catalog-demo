@@ -11,8 +11,9 @@ info:
     3. Subscribe to `{{mqttTopic}}` (see incoming messages in the response stream)
     4. Publish a JSON `notification` message to the same topic
 
-    **Optional consumer proof:** run `./demo.sh mqtt-bridge` before the demo so processed
-    messages are forwarded to your Postman webhook as `notification.processed`.
+    **Consumer proof:** an always-on MQTT bridge on the AWS VM (systemd `mqtt-bridge`) is
+    subscribed to the topic and forwards processed messages to your Postman webhook as
+    `notification.processed` — nothing to start manually.
 
 defaultContentType: application/json
 

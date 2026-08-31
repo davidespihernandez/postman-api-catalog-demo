@@ -77,7 +77,7 @@ export default function App() {
     <main className="app">
       <header>
         <h1>Orders</h1>
-        <p className="subtitle">Postman API Catalog demo · Cloudflare Workers backend</p>
+        <p className="subtitle">Postman API Catalog demo · AWS backend</p>
       </header>
 
       <section className="card">

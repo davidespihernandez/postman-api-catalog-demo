@@ -4,48 +4,43 @@ GitHub: https://github.com/davidespihernandez/postman-api-catalog-demo
 
 ## Purpose
 
-API Catalog demo: pre-deployed Cloudflare Workers (full CRUD) + Postman workspace (3 QA collections) + manual catalog integration. OpenAPI imported in Postman generates documentation collections. **No deploy during customer demo.**
+Postman **API Catalog** demo: three REST APIs + Postman workspace (QA + Doc collections) +
+**Insights/Runtime Health**, an async **MQTT** flow, and a **payment refund webhook** — all
+self-hosted on **AWS** and driven through a real **CI/CD pipeline**.
 
 ## Architecture
 
 ```
-./demo.sh setup → ./demo.sh setup-subdomain (once) → ./demo.sh deploy
-Cloudflare: Orders, Payments, Users (*.workers.dev) — full CRUD + /openapi.json
-Async: MQTT broker (HiveMQ public) — Postman MQTT request publishes directly to topic
-Optional: ./demo.sh mqtt-bridge → NOTIFICATION_WEBHOOK_URL
-Postman workspace → QA collections + OpenAPI/AsyncAPI specs
-API Catalog ← Manual import → Postman Workspace
+AWS EC2 (t4g.small, always-on, eu-central-1), managed via SSM (no public SSH)
+  Caddy :443 (TLS) → path-routed → node (Express) × 3 (Orders/Payments/Users)
+  Postman Insights agent → observes loopback traffic → Runtime Health
+  mqtt-bridge (systemd) ← broker.hivemq.com:1883 ← Postman MQTT publish
+Base URL: https://18-157-170-15.nip.io/{orders,payments,users,health}
 ```
 
-## Collections (`postman/`)
+The APIs are plain Node/Express servers (no Cloudflare). The stack is
+deployed by `runtime-vm/deploy-runtime.sh`; manage it with `./control.sh` (SSM-based).
 
-Native Postman layout synced from the repo:
+## Layout
+- `apis/<api>/` — Node/Express server (`src/server.mjs`), `openapi.json` (committed)
+- `orders.yaml` / `payments.yaml` / `users.yaml` — Spec Hub OpenAPI specs (source of truth)
+- `index.yaml` (AsyncAPI notifications), `payment-refund-webhook.yaml`
+- `runtime-vm/` — the on-VM stack + `aws/` control config; `scripts/mqtt-webhook-bridge.mjs`
+- `postman/` — collections (`* - QA`, `* - Doc`, `Notifications (MQTT)`), `Production * AWS` envs
+- `frontend/` — React UI + Playwright browser-testing demo
+- `.github/workflows/ci-cd.yml` — lint → QA (fresh code) → sync to cloud → deploy → smoke
 
-- `collections/Orders - QA`, `Payments - QA`, `Users - QA` — CRUD validation
-- `collections/* - Doc` — documentation (includes **Payments → Refund a payment** for webhook demo)
-- `environments/Production *` — `baseUrl` per API; Notifications uses `mqttBrokerUrl` + `mqttTopic`
+## Key flows
+- **Refund webhook:** `POST /payments/refund {"paymentId":"pay-001"}` → Payments worker POSTs
+  `payment.refunded` to `REFUND_WEBHOOK_URL` (set in the payments service's env on the VM).
+- **MQTT:** Postman publishes to `broker.hivemq.com:1883` topic `postman-api-catalog-demo/notifications`
+  → the always-on `mqtt-bridge` forwards `notification.processed` to `NOTIFICATION_WEBHOOK_URL`.
+- **CI/CD:** Postman local (git) is source of truth; deploy to AWS only if the QA gate (against the
+  freshly-built code) passes.
 
-Webhooks: `REFUND_WEBHOOK_URL` in `.env` before deploy; `NOTIFICATION_WEBHOOK_URL` for optional mqtt-bridge.
+## Gotchas
+- Services run as `ubuntu` (never root — SSM runs as root). Node 20+.
+- `*.webhook.pstmn.io` has a CNAME glibc won't follow on Linux → pinned in `/etc/hosts` by deploy.
+- Manage via SSM (`./control.sh`), not SSH (subnet NACL blocks 22).
 
-## Commands
-
-`setup`, `setup-subdomain`, `deploy`, `reset`, `add`, `smoke`, `urls`, `mqtt-bridge`
-
-**Setup order:** `setup` → `setup-subdomain` → `deploy`. Deploy alone fails on new Cloudflare accounts without a workers.dev subdomain.
-
-## Demo (Postman only)
-
-1. Catalog portfolio — integrated services  
-2. Service deep-dive — Overview / Development / Test  
-3. Run *QA collection (CRUD flow)  
-4. Async: MQTT publish to broker (separate from REST refund webhook demo)  
-
-See `DEMO-STEPS.md` and `SE-INSTALL.md`.
-
-## Workers
-
-`postman-api-catalog-demo-orders`, `-payments`, `-users`
-
-OpenAPI: `orders.yaml`, `payments.yaml`, `users.yaml`, `payment-refund-webhook.yaml`. AsyncAPI: `notifications.asyncapi.yaml` (MQTT — no worker). Deploy copies REST specs to `apis/<api>/openapi.json`.
-
-Payments: `POST /payments/refund` → `REFUND_WEBHOOK_URL`. Notifications: Postman **MQTT** → broker topic; optional `mqtt-bridge` → `NOTIFICATION_WEBHOOK_URL`.
+See `README.md` (overview + demos), `AWS-INSIGHTS.md` (provisioning), `runtime-vm/README.md` (stack).

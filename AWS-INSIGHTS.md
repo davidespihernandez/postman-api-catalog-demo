@@ -1,11 +1,10 @@
 # Self-hosted test API on AWS + Postman Insights (for the API Catalog)
 
-An **always-on** self-hosted twin of the Cloudflare demo API, on a small AWS EC2 VM, running the
+An **always-on** self-hosted deployment of the demo APIs on a small AWS EC2 VM, running the
 **Postman Insights agent** so the Insights-powered parts of the API Catalog (Runtime Health,
-observed endpoints, error rates) stay populated 24/7.
-
-> Runs **alongside** Cloudflare + GCP — nothing removed. Same `runtime-vm/` stack, same Insights
-> workspace/system-env. Only **one** agent should report to a given system at a time.
+observed endpoints, error rates) stay populated 24/7. This is the **sole backend** — the APIs are
+plain Node/Express servers (no Cloudflare). The VM also hosts the async
+**MQTT notifications** bridge and the **payment refund webhook**.
 
 ## Why AWS / cost
 
@@ -13,14 +12,14 @@ observed endpoints, error rates) stay populated 24/7.
 - Cost ≈ **instance ~$12/mo + public IPv4 ~$3.6/mo + ~12 GB EBS ~$1/mo ≈ $16/mo**. (AWS charges
   for public IPv4 like GCP; a stopped instance still bills the Elastic IP, so always-on is the
   intended mode here.) Cheaper `t4g.micro` (1 GB, +swap) is possible if you want to trim ~$6/mo.
-- Reuses `runtime-vm/deploy-runtime.sh` unchanged (Node 22, Caddy, agent, swap-if-needed).
+- Reuses `runtime-vm/deploy-runtime.sh` (Node 20, Caddy, Insights agent, swap-if-needed).
 
 ## The enterprise gotcha: no public SSH → use SSM
 
 The org's subnet **Network ACL denies inbound SSH (22)** except from corporate IPs, but **allows
 80/443 from anywhere** (so the demo URLs are public). So we **manage the box with AWS Systems
 Manager (SSM)** — the agent connects *outbound*, no inbound SSH needed. This matches the org's
-security posture. `control.sh aws …` uses SSM under the hood.
+security posture. `control.sh` uses SSM under the hood.
 
 Prereqs: `aws` CLI + SSO login (`aws sso login`), permission to create EC2/IAM/SSM resources.
 
@@ -77,18 +76,29 @@ aws ec2 reboot-instances --instance-ids $IID     # reboot so the SSM agent picks
 
 ### Deploy (via SSM — no SSH)
 
-Send a bootstrap that clones the repo, fetches the API key from SSM, writes `runtime-vm/.env`
-(`HOSTNAME=<eip-dashes>.nip.io`, `INSIGHTS_WORKSPACE_ID`, `INSIGHTS_SYSTEM_ENV`, the fetched
-`POSTMAN_API_KEY`), and runs `./deploy-runtime.sh`. Then install the `synthetic-traffic.sh` cron
-(`* * * * *`). No DuckDNS — the Elastic IP is static, so `<eip>.nip.io` is stable.
+Send a bootstrap that clones the repo, fetches the API key from SSM, writes `runtime-vm/.env`, and
+runs `./deploy-runtime.sh`. Then install the `synthetic-traffic.sh` cron (`* * * * *`). No DuckDNS —
+the Elastic IP is static, so `<eip>.nip.io` is stable.
+
+`runtime-vm/.env` values:
+- `HOSTNAME=<eip-dashes>.nip.io`
+- `POSTMAN_API_KEY` (fetched from the SSM SecureString), `INSIGHTS_WORKSPACE_ID`, `INSIGHTS_SYSTEM_ENV`
+- `REFUND_WEBHOOK_URL` — the deploy sets it in the payments service's environment so
+  `/payments/refund` can POST the `payment.refunded` event
+- `NOTIFICATION_WEBHOOK_URL` — enables the always-on `mqtt-bridge` (subscribes to
+  `broker.hivemq.com:1883` / `postman-api-catalog-demo/notifications`, forwards to this webhook)
+
+`deploy-runtime.sh` also **pins each webhook host in `/etc/hosts`**: Postman's `*.webhook.pstmn.io`
+has a CNAME with a literal `*` that Linux glibc won't follow, so the bridge/refund `fetch` would
+fail without the pin.
 
 ## Manage it
 
 ```bash
 cp runtime-vm/aws/aws.env.example runtime-vm/aws/aws.env   # set AWS_INSTANCE_ID + AWS_HOST
-./control.sh aws status     # EC2 state + services + health (via SSM)
-./control.sh aws reset      # restart the services
-./control.sh aws urls       # the 3 API URLs
+./control.sh status     # EC2 state + services + health (via SSM)
+./control.sh reset      # restart the services
+./control.sh urls       # the 3 API URLs
 ```
 
 ## Security

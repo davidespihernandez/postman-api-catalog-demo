@@ -3,8 +3,8 @@
  * MQTT → Postman webhook bridge for the notifications async demo.
  * Subscribes to the demo topic and POSTs notification.processed to NOTIFICATION_WEBHOOK_URL.
  *
- * Run during SE setup (keep running in a terminal before/during the demo):
- *   ./demo.sh mqtt-bridge
+ * On AWS this runs always-on as the `mqtt-bridge` systemd service (see runtime-vm/deploy-runtime.sh).
+ * To run it locally instead: `npm run mqtt-bridge` (reads NOTIFICATION_WEBHOOK_URL from .env).
  */
 import mqtt from "mqtt";
 import { readFileSync, existsSync } from "node:fs";

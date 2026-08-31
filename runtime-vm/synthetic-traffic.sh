@@ -8,7 +8,7 @@
 #
 # Usage (on the VM):
 #   ./synthetic-traffic.sh                    # one pass, reads HOSTNAME from .env
-#   HOSTNAME=davidinsights.duckdns.org ./synthetic-traffic.sh
+#   HOSTNAME=18-157-170-15.nip.io ./synthetic-traffic.sh
 #
 # Run every minute via cron (`crontab -e`):
 #   * * * * * /home/ubuntu/postman-api-catalog-demo/runtime-vm/synthetic-traffic.sh >/dev/null 2>&1

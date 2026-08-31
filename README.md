@@ -1,64 +1,77 @@
 # Postman API Catalog Demo
 
-Real HTTPS APIs for repeatable **API Catalog** demos, on **three backends** you switch between
-with Postman environments:
+A repeatable demo of the **Postman API Catalog** end to end: three REST APIs, **Insights /
+Runtime Health**, an async **MQTT notifications** flow, a **payment refund webhook**, a browser
+frontend for traffic capture, and a real **CI/CD pipeline** — all self-hosted on **AWS**.
 
 ```
-Cloudflare Workers  →  the classic demo (CI/CD, spec, tests)         ./demo.sh
-GCP VM + Insights   →  self-hosted twin, on-demand (start/stop)      ./control.sh gcp …
-AWS EC2 + Insights  →  self-hosted twin, always-on (EU, via SSM)     ./control.sh aws …
+                         AWS EC2 (t4g.small, always-on, eu-central-1)
+                         ┌───────────────────────────────────────────────┐
+ clients / Postman  ───▶ │ Caddy :443 (TLS)  ── path-routed ──┐          │
+ https://18-157-170-15    │                                     ▼          │
+   -.nip.io/{orders,      │   node (Express) × 3 (127.0.0.1:8787/8/9)       │
+    payments,users}       │   (Orders / Payments / Users workers)          │
+                         │        ▲ loopback (plaintext)                   │
+                         │   Postman Insights agent  ── observes ──▶ API Catalog Runtime Health
+                         │   mqtt-bridge  ◀── broker.hivemq.com ── Postman (MQTT publish)
+                         └───────────────────────────────────────────────┘
 ```
 
-The Insights agent can't run on serverless Cloudflare Workers, so the GCP/AWS VMs host self-hosted
-twins the agent can observe. All stay live; pick one per demo.
+The APIs are plain **Node/Express** servers running on the VM — no Cloudflare anywhere. The whole box is managed over **AWS SSM** (no public SSH).
 
-Repository: [github.com/davidespihernandez/postman-api-catalog-demo](https://github.com/davidespihernandez/postman-api-catalog-demo)
+**Base URL:** `https://18-157-170-15.nip.io` → `/orders`, `/payments`, `/users`, `/health`.
 
-| Doc | Audience |
-|-----|----------|
-| [SE-INSTALL.md](SE-INSTALL.md) | SE one-time setup — Cloudflare (includes deploy) |
-| [DEMO-STEPS.md](DEMO-STEPS.md) | Customer demo (Postman app only) |
-| [CI-CD.md](CI-CD.md) | GitHub Actions + Postman CLI (Orders QA) |
-| [GCP-INSIGHTS.md](GCP-INSIGHTS.md) | Runtime Health via a **GCP** VM + Insights agent (replication runbook) |
-| [AWS-INSIGHTS.md](AWS-INSIGHTS.md) | Runtime Health via an **AWS** EC2 VM + Insights agent, always-on via SSM (replication runbook) |
-| [runtime-vm/README.md](runtime-vm/README.md) | The shared VM stack internals (deploy-runtime.sh) |
+| Doc | What |
+|-----|------|
+| [AWS-INSIGHTS.md](AWS-INSIGHTS.md) | Full replication runbook — stand up the whole thing on a fresh AWS account |
+| [runtime-vm/README.md](runtime-vm/README.md) | The on-VM stack internals (`deploy-runtime.sh`) |
+| [AGENTS.md](AGENTS.md) | Quick orientation for agents/contributors |
 
-**Control scripts:** `./demo.sh` manages Cloudflare; `./control.sh <cf\|gcp\|aws\|all>
-<start\|stop\|reset\|status\|urls>` manages all three (GCP settings in `runtime-vm/gcp/gcp.env`,
-AWS in `runtime-vm/aws/aws.env`).
+## Features & how to demo them
 
-## Setup (before the demo)
+**1. REST APIs + contract tests** — Orders / Payments / Users, each with a `… - QA` collection.
+Run any QA collection with the **`Production <API> AWS`** environment (`baseUrl =
+https://18-157-170-15.nip.io`).
+
+**2. Runtime Health (Insights)** — the Insights agent on the VM observes live traffic and populates
+the catalog's **Runtime Health** (P95 latency, availability, 4xx rate). A 1-minute
+`synthetic-traffic.sh` cron keeps it fresh. Runtime data reflects the last ~7 days.
+
+**3. Async notifications (MQTT)** — publish a JSON message from the **Notifications (MQTT)**
+collection to `broker.hivemq.com:1883`, topic `postman-api-catalog-demo/notifications`. The
+always-on **`mqtt-bridge`** service on the VM forwards it to your notification webhook as
+`notification.processed`. Nothing to run on your laptop.
+
+**4. Payment refund webhook** — `POST /payments/refund` (`{"paymentId":"pay-001"}`) with the
+**Production Payments AWS** env → the Payments worker POSTs a `payment.refunded` event to your
+refund webhook.
+
+**5. Browser frontend (Playwright)** — `frontend/` is a small React UI that drives the Orders API
+from a browser so Postman can capture the traffic during Playwright tests (`npm run test:ui`,
+analyzed via `npm run app:test`). Defaults to the AWS host.
+
+## CI/CD pipeline (`.github/workflows/ci-cd.yml`)
+
+Postman **local (git) is the source of truth**; the cloud workspace is the published mirror.
+
+- **PR → main:** spec lint (local `*.yaml`) + QA collection against the **freshly-built** Orders
+  code (an ephemeral `node` server in the runner) — a breaking change fails here.
+- **push → main:** the same gate, then **`postman workspace push`** (local → Postman Cloud) and
+  **deploy to AWS** via SSM (`git pull` + `deploy-runtime.sh`), then a post-deploy smoke test.
+- Deploy only runs if the test gate passes. AWS auth is via **GitHub OIDC** (no stored keys);
+  the only repo secret is `POSTMAN_API_KEY`.
+
+## Managing the AWS backend
 
 ```bash
-./demo.sh setup
-./demo.sh setup-subdomain   # one-time: pick your *.workers.dev name
-./demo.sh deploy
-./demo.sh urls
+cp runtime-vm/aws/aws.env.example runtime-vm/aws/aws.env   # set AWS_INSTANCE_ID + AWS_HOST
+./control.sh status     # EC2 state + service health (via SSM)
+./control.sh reset      # restart all services on the VM
+./control.sh urls       # print the API URLs
+./control.sh start|stop # start/stop the instance (it's meant to be always-on)
 ```
-
-`setup-subdomain` must run in an **interactive terminal** (wrangler prompts for your subdomain). After that, `deploy` is non-interactive.
-
-Sync the `postman/` folder into your workspace (collections, environments, globals). See [SE-INSTALL.md](SE-INSTALL.md).
-
-## Postman assets
-
-```
-postman/collections/     QA + Doc collections (native Postman format)
-postman/environments/    Production / Mock per API + MQTT notifications
-postman/globals/
-```
-
-| Spec / collection | Purpose |
-|-------------------|---------|
-| `orders.yaml`, `payments.yaml`, `users.yaml` | Backend REST APIs (workers) |
-| `payment-refund-webhook.yaml` | Inbound refund event contract |
-| `notifications.asyncapi.yaml` | MQTT async message contract |
-| `Orders - QA`, `Payments - QA`, `Users - QA` | CRUD validation |
-| `Payments - Doc` → Refund a payment | REST → webhook (sync async) |
-| Manual **MQTT** collection request | Publish directly to broker topic (you create) |
-
-Set `REFUND_WEBHOOK_URL` in `.env` before deploy. For MQTT webhook proof, run `./demo.sh mqtt-bridge` (see SE-INSTALL).
 
 ## Requirements
-
-Node.js 18+, curl, Cloudflare (free), Postman Enterprise with API Catalog, Postman desktop app (for MQTT requests).
+Postman Enterprise (API Catalog + Insights), the Postman CLI, an AWS account with SSM access, and
+Node 20+ / `aws` CLI locally for `control.sh`. Deploying from scratch: see
+[AWS-INSIGHTS.md](AWS-INSIGHTS.md).

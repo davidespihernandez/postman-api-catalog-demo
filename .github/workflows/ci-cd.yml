@@ -5,7 +5,7 @@
 #   Deploy only runs if the test gate passes (release job `needs: test`).
 #
 # Requires: repo secret POSTMAN_API_KEY (already set). AWS access via GitHub OIDC
-# (role github-actions-postman-deploy, no stored keys). See CI-CD.md.
+# (role github-actions-postman-deploy, no stored keys). See README.md.
 
 name: API CI/CD
 
@@ -51,14 +51,16 @@ jobs:
           done
       - name: QA collection (against THIS commit's Orders code)
         run: |
-          # Run the pushed Orders worker locally so QA validates the new code,
+          # Run the pushed Orders server locally so QA validates the new code,
           # not the currently-deployed API. A breaking change fails here and
           # blocks the deploy (the release job needs this job to pass).
-          npx wrangler dev --config apis/orders/wrangler.toml --ip 127.0.0.1 --port 8787 &
+          PORT=8787 node apis/orders/src/server.mjs &
           WPID=$!
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8787/health >/dev/null 2>&1 && break; sleep 2; done
           curl -sf http://127.0.0.1:8787/health >/dev/null 2>&1 || { echo "::error::Orders API failed to start"; kill $WPID 2>/dev/null; exit 1; }
-          postman collection run "${{ env.ORDERS_QA_COLLECTION }}" --env-var "baseUrl=http://127.0.0.1:8787"
+          # --bail stops at the FIRST failing request so the root cause isn't buried
+          # under cascade failures (a broken Create nulls the id used by later tests).
+          postman collection run "${{ env.ORDERS_QA_COLLECTION }}" --env-var "baseUrl=http://127.0.0.1:8787" --bail
           rc=$?
           kill $WPID 2>/dev/null || true
           exit $rc
@@ -121,4 +123,4 @@ jobs:
         run: |
           # confirm the deployed AWS API passes the same QA suite
           for i in $(seq 1 20); do curl -sf "https://$AWS_HOST/health" >/dev/null 2>&1 && break; sleep 4; done
-          postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}"
+          postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}" --bail

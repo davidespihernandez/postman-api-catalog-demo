@@ -1,17 +1,17 @@
-# Run Postman performance test via CLI (cloud collection).
-# Setup: see CI-CD.md — add POSTMAN_API_KEY secret.
+# Run a Postman performance test (manual) against the self-hosted AWS Orders API.
+# Requires the POSTMAN_API_KEY repo secret.
+# Manual only: it drives load at the always-on AWS box (a small t4g.small VM), so
+# thresholds are relaxed vs an edge/serverless backend.
 
 name: API — Performance test
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 env:
   POSTMAN_PERFORMANCE_COLLECTION_ID: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855
-  # Production Orders environment (baseUrl → deployed Orders worker)
-  POSTMAN_ENVIRONMENT_ID: 53522859-60759898-5954-4a4a-8ed6-645707a414fa
+  # Production Orders AWS environment (baseUrl -> https://18-157-170-15.nip.io)
+  POSTMAN_ENVIRONMENT_ID: 53522859-9577f7c6-d8c7-4375-bf19-85b17e418c33
 
 jobs:
   performance-test:
@@ -23,11 +23,11 @@ jobs:
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
 
-      - name: Run performance test
+      - name: Run performance test (against AWS)
         run: |
           postman performance run "${{ env.POSTMAN_PERFORMANCE_COLLECTION_ID }}" \
             -e "${{ env.POSTMAN_ENVIRONMENT_ID }}" \
-            --vu-count 20 \
+            --vu-count 5 \
             --duration 1 \
             --load-profile fixed \
-            --pass-if "less_than(p99, 500)"
+            --pass-if "less_than(p99, 2000)"
