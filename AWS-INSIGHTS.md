@@ -74,9 +74,9 @@ webhook URLs.
 ## 2. Provision the VM (one-time, from your laptop)
 
 **Why these choices:** EC2 **`t4g.small`** (ARM, 2 GB) in **eu-central-1**, always-on for continuous
-Insights. Cost ≈ **instance ~$12/mo + public IPv4 ~$3.6/mo + ~12 GB EBS ~$1/mo ≈ $16/mo** (AWS bills
-public IPv4, and a *stopped* instance still bills the Elastic IP — so always-on is the intended
-mode). `t4g.micro` (1 GB, +swap) trims ~$6/mo if you want.
+Insights — the agent has to be running to observe traffic, so this isn't a start/stop workload.
+Budget **≈ $16–19/month**; full breakdown in [Cost](#cost) below. `t4g.micro` (1 GB, +swap) trims
+~$6/mo if you want to run leaner.
 
 ```bash
 export AWS_REGION=eu-central-1 AWS_PAGER=""
@@ -204,9 +204,10 @@ dashboard shows meaningful, non-flat data. Runtime Health reflects roughly the l
 
 `.github/workflows/ci-cd.yml` gives you the full pipeline: **PR →** spec lint + QA against the
 *freshly-built* code (a breaking change fails here and can't merge); **push to main →** the same
-gate, then `postman workspace push` (git → Postman Cloud) and **deploy to AWS via SSM**, then a
-post-deploy smoke test. AWS auth is **keyless via GitHub OIDC** — no stored AWS keys; the only repo
-secret is `POSTMAN_API_KEY`.
+gate, then a **performance load-test** (`postman performance run`, `--pass-if p99<2000`) against
+live AWS, then `postman workspace push` (git → Postman Cloud) and **deploy to AWS via SSM**, then a
+post-deploy smoke test. Deploy runs only if both the QA and performance gates pass. AWS auth is
+**keyless via GitHub OIDC** — no stored AWS keys; the only repo secret is `POSTMAN_API_KEY`.
 
 **a. Create the GitHub OIDC provider + deploy role** (once per AWS account):
 
@@ -244,12 +245,39 @@ echo "DEPLOY_ROLE=arn:aws:iam::$ACCOUNT_ID:role/github-actions-postman-deploy"
 
 **c. Edit the `env:` block at the top of `.github/workflows/ci-cd.yml`** to your values:
 `AWS_REGION`, `AWS_INSTANCE_ID` (`$IID`), `AWS_HOST` (`$HOSTNAME`), `DEPLOY_ROLE` (printed above),
-and the two Postman ids `ORDERS_QA_COLLECTION` + `AWS_ORDERS_ENV` (from `.postman/resources.yaml`).
+and the Postman ids `ORDERS_QA_COLLECTION`, `ORDERS_PERF_COLLECTION`, and `AWS_ORDERS_ENV` (from
+`.postman/resources.yaml`).
 
 That's it — push to `main` and the pipeline lints, tests the new code, syncs the workspace, and
 redeploys the VM.
 
 ---
+
+## Cost
+
+Rough **eu-central-1** on-demand pricing for the always-on setup. The bill is dominated by two
+unavoidable always-on line items: the instance and the public IPv4 address.
+
+| Item | Spec | ~Monthly |
+|------|------|----------|
+| EC2 instance | `t4g.small` (ARM, 2 vCPU / 2 GB), on-demand, 24×7 | **~$12–14** |
+| Public IPv4 | 1 address, $0.005/hr (billed whether the instance is running **or stopped**) | **~$3.60** |
+| EBS storage | 12 GB gp3 root volume | **~$1** |
+| Data transfer out | demo + synthetic traffic is tiny; first 100 GB/mo is free | **~$0** |
+| **Total** | | **≈ $16–19/mo** |
+
+**Free / already-covered (no AWS charge):**
+- **AWS SSM** (management), **Let's Encrypt** (TLS), **nip.io** (DNS), **HiveMQ** public broker (MQTT).
+- **GitHub Actions** CI/CD — free for public repos; 2,000 min/mo free on private.
+- **Postman** (Enterprise + Insights) and the **Insights agent** are licensed separately, not an AWS cost.
+
+**Ways to trim:**
+- `t4g.micro` (1 GB) instead of `t4g.small` → ~**-$6/mo** (the deploy adds a 2 GB swapfile so it fits).
+- A 1-year **Compute Savings Plan / Reserved Instance** cuts the instance ~30–40% if this becomes permanent.
+- **Don't** stop the instance to save money: a stopped instance still bills the Elastic IP *and* the
+  EBS volume, and Insights stops observing — so you lose the whole point for almost no saving. Always-on
+  is the intended (and cheapest-useful) mode. To actually stop paying, terminate the instance and
+  **release the Elastic IP** (an *allocated but unassociated* EIP is also billed).
 
 ## Manage it
 

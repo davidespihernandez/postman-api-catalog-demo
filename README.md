@@ -56,10 +56,12 @@ Postman **local (git) is the source of truth**; the cloud workspace is the publi
 
 - **PR → main:** spec lint (local `*.yaml`) + QA collection against the **freshly-built** Orders
   code (an ephemeral `node` server in the runner) — a breaking change fails here.
-- **push → main:** the same gate, then **`postman workspace push`** (local → Postman Cloud) and
-  **deploy to AWS** via SSM (`git pull` + `deploy-runtime.sh`), then a post-deploy smoke test.
-- Deploy only runs if the test gate passes. AWS auth is via **GitHub OIDC** (no stored keys);
-  the only repo secret is `POSTMAN_API_KEY`.
+- **push → main:** the same gate, then a **performance load-test** (`postman performance run`,
+  5 VUs, `--pass-if p99<2000`) against live AWS, then **`postman workspace push`** (local → Postman
+  Cloud) and **deploy to AWS** via SSM (`git pull` + `deploy-runtime.sh`), then a post-deploy smoke test.
+- Deploy only runs if **both** the test gate and the performance gate pass. The performance job can
+  also be run on demand (**Actions → Run workflow**). AWS auth is via **GitHub OIDC** (no stored
+  keys); the only repo secret is `POSTMAN_API_KEY`.
 
 ## Managing the AWS backend
 
@@ -75,3 +77,7 @@ cp runtime-vm/aws/aws.env.example runtime-vm/aws/aws.env   # set AWS_INSTANCE_ID
 Postman Enterprise (API Catalog + Insights), the Postman CLI, an AWS account with SSM access, and
 Node 20+ / `aws` CLI locally for `control.sh`. Deploying from scratch: see
 [AWS-INSIGHTS.md](AWS-INSIGHTS.md).
+
+**Running cost:** the always-on AWS backend is **≈ $16–19/month** (EC2 `t4g.small` + public IPv4 +
+EBS). SSM, TLS, DNS, MQTT broker, and CI are free. Full breakdown in
+[AWS-INSIGHTS.md → Cost](AWS-INSIGHTS.md#cost).

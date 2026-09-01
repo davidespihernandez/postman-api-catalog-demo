@@ -1,8 +1,11 @@
 # Real CI/CD pipeline — Postman local (git) is the source of truth.
 #   PR -> main : spec lint + QA against the FRESHLY-BUILT code (gate; a breaking change
 #                fails here, so it can't be merged/deployed)
-#   push main  : same gate, then sync local->Postman Cloud, deploy to AWS, post-deploy smoke
-#   Deploy only runs if the test gate passes (release job `needs: test`).
+#   push main  : same gate, then a performance load-test vs live AWS (p99 gate), then sync
+#                local->Postman Cloud, deploy to AWS, post-deploy smoke
+#   Deploy only runs if BOTH the test gate and the performance gate pass
+#                (release `needs: [test, performance]`).
+#   The performance job also runs on manual dispatch (replaces the old standalone workflow).
 #
 # Requires: repo secret POSTMAN_API_KEY (already set). AWS access via GitHub OIDC
 # (role github-actions-postman-deploy, no stored keys). See README.md.
@@ -22,11 +25,17 @@ permissions:
 
 env:
   ORDERS_QA_COLLECTION: 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
+  ORDERS_PERF_COLLECTION: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855   # Orders GET performance test
   AWS_ORDERS_ENV: 53522859-9577f7c6-d8c7-4375-bf19-85b17e418c33   # Orders Production (AWS)
   AWS_HOST: 18-157-170-15.nip.io
   AWS_REGION: eu-central-1
   AWS_INSTANCE_ID: i-0b7891fda81d7e646
   DEPLOY_ROLE: arn:aws:iam::005904641462:role/github-actions-postman-deploy
+  # Performance gate (load test vs live AWS). Relaxed p99 because the backend is a
+  # small always-on t4g.small behind Caddy/TLS, not an edge/serverless API.
+  PERF_VU_COUNT: "5"
+  PERF_DURATION_MIN: "1"
+  PERF_PASS_IF: "less_than(p99, 2000)"
 
 jobs:
   test:
@@ -65,9 +74,35 @@ jobs:
           kill $WPID 2>/dev/null || true
           exit $rc
 
+  performance:
+    name: Performance (load test vs live AWS — pre-deploy gate)
+    needs: test
+    # On push to main this gates the deploy; also runnable on demand (replaces the
+    # old standalone postman-performance.yml). Skipped on PRs so we don't load prod.
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Wait for AWS API to be reachable
+        run: for i in $(seq 1 20); do curl -sf "https://$AWS_HOST/health" >/dev/null 2>&1 && break; sleep 3; done
+      - name: Performance run (p99 gate vs live AWS)
+        run: |
+          # Load-test the CURRENTLY-DEPLOYED Orders API. A p99 regression fails here and
+          # blocks the deploy below (release needs this job). Runs against the Production
+          # Orders AWS environment (baseUrl -> https://$AWS_HOST).
+          postman performance run "${{ env.ORDERS_PERF_COLLECTION }}" \
+            -e "${{ env.AWS_ORDERS_ENV }}" \
+            --vu-count ${{ env.PERF_VU_COUNT }} \
+            --duration ${{ env.PERF_DURATION_MIN }} \
+            --load-profile fixed \
+            --pass-if "${{ env.PERF_PASS_IF }}"
+
   release:
     name: Sync to Cloud + Deploy to AWS
-    needs: test
+    needs: [test, performance]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
