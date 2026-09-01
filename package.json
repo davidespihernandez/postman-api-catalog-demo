@@ -9,6 +9,10 @@
   },
   "type": "module",
   "scripts": {
+    "start": "node apis/orders/src/server.mjs & node apis/payments/src/server.mjs & node apis/users/src/server.mjs & wait",
+    "start:orders": "node apis/orders/src/server.mjs",
+    "start:payments": "node apis/payments/src/server.mjs",
+    "start:users": "node apis/users/src/server.mjs",
     "mqtt-bridge": "node scripts/mqtt-webhook-bridge.mjs",
     "test:ui": "frontend/node_modules/.bin/playwright test --config frontend/playwright.config.js",
     "app:test": "postman app test --report-events"
