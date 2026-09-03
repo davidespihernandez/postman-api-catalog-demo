@@ -133,10 +133,16 @@ jobs:
         with:
           role-to-assume: ${{ env.DEPLOY_ROLE }}
           aws-region: ${{ env.AWS_REGION }}
-      - name: Deploy to AWS (SSM → git pull + redeploy)
+      - name: Deploy to AWS (SSM → fetch + redeploy)
         run: |
+          # Self-healing pull on the VM: pin the anonymous public remote (the repo is
+          # public — no creds needed; guards against a stale authenticated origin URL that
+          # makes git prompt for a username under SSM's no-tty shell), force HTTP/1.1 to
+          # dodge the "expected flush after ref listing" smart-HTTP/2 hiccup, disable the
+          # credential prompt so it fails fast instead of hanging, retry transient blips,
+          # then hard-reset to origin/main (VM only ever consumes main).
           cat > /tmp/ssm.json <<'JSON'
-          {"commands":["sudo -u ubuntu -H bash -lc 'cd ~/postman-api-catalog-demo && git pull -q && cd runtime-vm && ./deploy-runtime.sh'"]}
+          {"commands":["sudo -u ubuntu -H bash -lc 'cd ~/postman-api-catalog-demo && git remote set-url origin https://github.com/davidespihernandez/postman-api-catalog-demo.git && git config --global http.version HTTP/1.1 && ( for i in 1 2 3; do GIT_TERMINAL_PROMPT=0 git fetch --quiet origin main && exit 0; sleep 5; done; exit 1 ) && git reset --hard --quiet origin/main && cd runtime-vm && ./deploy-runtime.sh'"]}
           JSON
           CID=$(aws ssm send-command --instance-ids "$AWS_INSTANCE_ID" \
             --document-name AWS-RunShellScript --parameters file:///tmp/ssm.json \
