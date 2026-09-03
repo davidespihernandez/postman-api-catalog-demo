@@ -4,6 +4,9 @@ request:
   method: GET
   headers:
     Accept: application/json
+  body:
+    type: text
+    content: ""
 response:
   statusCode: 200
   statusText: OK
@@ -16,5 +19,31 @@ response:
         "status": "ok",
         "service": "orders-api",
         "version": "1.0.0"
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ],
+            "example": "ok"
+          },
+          "service": {
+            "type": "string",
+            "example": "orders-api"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "version"
+        ]
       }
 order: 1000

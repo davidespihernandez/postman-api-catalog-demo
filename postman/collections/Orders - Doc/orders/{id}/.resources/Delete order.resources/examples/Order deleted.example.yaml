@@ -5,7 +5,11 @@ request:
   pathVariables:
     - key: id
       value: ord-001
+      disabled: false
       description: Order identifier
+  body:
+    type: text
+    content: ""
 response:
   statusCode: 204
   statusText: No Content

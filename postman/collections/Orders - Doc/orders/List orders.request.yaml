@@ -1,8 +1,12 @@
 $kind: http-request
+description: ""
 url: "{{baseUrl}}/orders"
 method: GET
 headers:
   Accept: application/json
+body:
+  type: text
+  content: ""
 settings: {}
 examples: ./.resources/List orders.resources/examples
 order: 2000

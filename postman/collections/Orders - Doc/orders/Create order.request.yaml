@@ -1,4 +1,5 @@
 $kind: http-request
+description: ""
 url: "{{baseUrl}}/orders"
 method: POST
 headers:
@@ -12,6 +13,45 @@ body:
       "total": 99.5,
       "status": "pending",
       "currency": "USD"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "customerId": {
+          "type": "string",
+          "example": "usr-002",
+          "description": "Customer placing the order"
+        },
+        "total": {
+          "type": "number",
+          "minimum": 0,
+          "example": 99.5,
+          "format": "double"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "processing",
+            "shipped",
+            "cancelled"
+          ],
+          "example": "pending",
+          "description": "Initial order status"
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 3,
+          "example": "USD",
+          "description": "ISO 4217 currency code"
+        }
+      },
+      "required": [
+        "customerId",
+        "total"
+      ]
     }
 settings: {}
 examples: ./.resources/Create order.resources/examples

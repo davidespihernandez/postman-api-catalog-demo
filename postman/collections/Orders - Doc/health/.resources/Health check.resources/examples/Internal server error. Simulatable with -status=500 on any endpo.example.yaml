@@ -5,6 +5,9 @@ request:
   method: GET
   headers:
     Accept: application/json
+  body:
+    type: text
+    content: ""
 response:
   statusCode: 500
   statusText: Internal Server Error
@@ -19,5 +22,34 @@ response:
         "simulated": true,
         "service": "orders-api",
         "delayMs": 2000
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Simulated response for API Catalog demo"
+          },
+          "status": {
+            "type": "integer",
+            "example": 500
+          },
+          "simulated": {
+            "type": "boolean",
+            "example": true
+          },
+          "service": {
+            "type": "string",
+            "example": "orders-api"
+          },
+          "delayMs": {
+            "type": "integer",
+            "example": 2000
+          }
+        },
+        "required": [
+          "error"
+        ]
       }
 order: 2000

@@ -1,4 +1,5 @@
 $kind: http-request
+description: ""
 url: "{{baseUrl}}/orders/:id"
 method: GET
 headers:
@@ -6,7 +7,24 @@ headers:
 pathVariables:
   - key: id
     value: ord-001
+    disabled: false
     description: Order identifier
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "example": "ord-001"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
 settings: {}
 examples: ./.resources/Get order by ID.resources/examples
 order: 1000
