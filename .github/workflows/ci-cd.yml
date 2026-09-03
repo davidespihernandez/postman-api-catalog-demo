@@ -1,11 +1,9 @@
 # Real CI/CD pipeline — Postman local (git) is the source of truth.
-#   PR -> main : spec lint + QA + a performance load-test, ALL against the FRESHLY-BUILT
-#                code in the runner (gate; a breaking or slow change fails here → merge blocked)
-#   push main  : the QA gate, then a performance load-test vs live AWS (p99 gate), then sync
-#                local->Postman Cloud, deploy to AWS, post-deploy smoke
+#   PR & push  : spec lint + QA + a performance load-test, ALL against the FRESHLY-BUILT
+#                code in the runner (a breaking or slow change fails here → merge/deploy blocked)
+#   push main  : after those pass, sync local->Postman Cloud, deploy to AWS, post-deploy smoke
 #   Deploy only runs if BOTH the test gate and the performance gate pass
 #                (release `needs: [test, performance]`).
-#   The performance job also runs on manual dispatch (replaces the old standalone workflow).
 #
 # Requires: repo secret POSTMAN_API_KEY (already set). AWS access via GitHub OIDC
 # (role github-actions-postman-deploy, no stored keys). See README.md.
@@ -31,8 +29,7 @@ env:
   AWS_REGION: eu-central-1
   AWS_INSTANCE_ID: i-0b7891fda81d7e646
   DEPLOY_ROLE: arn:aws:iam::005904641462:role/github-actions-postman-deploy
-  # Performance gate (load test vs live AWS). Relaxed p99 because the backend is a
-  # small always-on t4g.small behind Caddy/TLS, not an edge/serverless API.
+  # Performance gate (load test against the freshly-built code in the runner).
   PERF_VU_COUNT: "5"
   PERF_DURATION_MIN: "1"
   PERF_PASS_IF: "less_than(p99, 2000)"
@@ -75,37 +72,11 @@ jobs:
           exit $rc
 
   performance:
-    name: Performance (load test vs live AWS — pre-deploy gate)
+    name: Performance (load test — freshly-built code)
     needs: test
-    # On push to main this gates the deploy; also runnable on demand (replaces the
-    # old standalone postman-performance.yml). Skipped on PRs so we don't load prod.
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Postman CLI
-        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
-      - name: Login to Postman CLI
-        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Wait for AWS API to be reachable
-        run: for i in $(seq 1 20); do curl -sf "https://$AWS_HOST/health" >/dev/null 2>&1 && break; sleep 3; done
-      - name: Performance run (p99 gate vs live AWS)
-        run: |
-          # Load-test the CURRENTLY-DEPLOYED Orders API. A p99 regression fails here and
-          # blocks the deploy below (release needs this job). Runs against the Production
-          # Orders AWS environment (baseUrl -> https://$AWS_HOST).
-          postman performance run "${{ env.ORDERS_PERF_COLLECTION }}" \
-            -e "${{ env.AWS_ORDERS_ENV }}" \
-            --vu-count ${{ env.PERF_VU_COUNT }} \
-            --duration ${{ env.PERF_DURATION_MIN }} \
-            --load-profile fixed \
-            --pass-if "${{ env.PERF_PASS_IF }}"
-
-  performance-pr:
-    name: Performance (load test vs freshly-built code)
-    needs: test
-    # PRs only: load-test THIS PR's code in the runner (the live-AWS perf job above is
-    # push-to-main/dispatch). Catches a perf regression before merge, without loading prod.
-    if: github.event_name == 'pull_request'
+    # Runs on every event (PR, push to main, manual dispatch): always load-tests the
+    # code being shipped, in the runner. On push to main it also gates the deploy
+    # (release needs it). One job, one behaviour — nothing to explain twice.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -118,12 +89,12 @@ jobs:
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
-      - name: Load-test THIS PR's Orders code (localhost in the runner)
+      - name: Load-test the freshly-built Orders code (localhost in the runner)
         run: |
-          # Boot the pushed Orders server and load-test IT (not live AWS), so a perf
-          # regression in the PR is caught before merge. Runner-localhost numbers are
-          # indicative, not capacity-grade — the p99 threshold is a smoke-level guard.
-          # baseUrl comes from .github/perf-local.env.yaml (127.0.0.1:8787); performance
+          # Boot THIS commit's Orders server and load-test it, so a perf regression is
+          # caught before merge/deploy — no load on prod. Runner-localhost numbers are
+          # indicative, not capacity-grade; the p99 threshold is a smoke-level guard.
+          # baseUrl comes from .github/perf-local.env.yaml (127.0.0.1:8787) — performance
           # run has no --env-var, so it reads baseUrl from that env file.
           PORT=8787 node apis/orders/src/server.mjs &
           WPID=$!
