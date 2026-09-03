@@ -1,7 +1,7 @@
 # Real CI/CD pipeline — Postman local (git) is the source of truth.
-#   PR -> main : spec lint + QA against the FRESHLY-BUILT code (gate; a breaking change
-#                fails here, so it can't be merged/deployed)
-#   push main  : same gate, then a performance load-test vs live AWS (p99 gate), then sync
+#   PR -> main : spec lint + QA + a performance load-test, ALL against the FRESHLY-BUILT
+#                code in the runner (gate; a breaking or slow change fails here → merge blocked)
+#   push main  : the QA gate, then a performance load-test vs live AWS (p99 gate), then sync
 #                local->Postman Cloud, deploy to AWS, post-deploy smoke
 #   Deploy only runs if BOTH the test gate and the performance gate pass
 #                (release `needs: [test, performance]`).
@@ -99,6 +99,45 @@ jobs:
             --duration ${{ env.PERF_DURATION_MIN }} \
             --load-profile fixed \
             --pass-if "${{ env.PERF_PASS_IF }}"
+
+  performance-pr:
+    name: Performance (load test vs freshly-built code)
+    needs: test
+    # PRs only: load-test THIS PR's code in the runner (the live-AWS perf job above is
+    # push-to-main/dispatch). Catches a perf regression before merge, without loading prod.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Install deps
+        run: npm ci
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Load-test THIS PR's Orders code (localhost in the runner)
+        run: |
+          # Boot the pushed Orders server and load-test IT (not live AWS), so a perf
+          # regression in the PR is caught before merge. Runner-localhost numbers are
+          # indicative, not capacity-grade — the p99 threshold is a smoke-level guard.
+          # baseUrl comes from .github/perf-local.env.yaml (127.0.0.1:8787); performance
+          # run has no --env-var, so it reads baseUrl from that env file.
+          PORT=8787 node apis/orders/src/server.mjs &
+          WPID=$!
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8787/health >/dev/null 2>&1 && break; sleep 2; done
+          curl -sf http://127.0.0.1:8787/health >/dev/null 2>&1 || { echo "::error::Orders API failed to start"; kill $WPID 2>/dev/null; exit 1; }
+          postman performance run "${{ env.ORDERS_PERF_COLLECTION }}" \
+            -e .github/perf-local.env.yaml \
+            --vu-count ${{ env.PERF_VU_COUNT }} \
+            --duration ${{ env.PERF_DURATION_MIN }} \
+            --load-profile fixed \
+            --pass-if "${{ env.PERF_PASS_IF }}"
+          rc=$?
+          kill $WPID 2>/dev/null || true
+          exit $rc
 
   release:
     name: Sync to Cloud + Deploy to AWS
