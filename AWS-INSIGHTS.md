@@ -202,12 +202,13 @@ dashboard shows meaningful, non-flat data. Runtime Health reflects roughly the l
 
 ## 6. CI/CD (optional but recommended)
 
-`.github/workflows/ci-cd.yml` gives you the full pipeline: **PR →** spec lint + QA against the
-*freshly-built* code (a breaking change fails here and can't merge); **push to main →** the same
-gate, then a **performance load-test** (`postman performance run`, `--pass-if p99<2000`) against
-live AWS, then `postman workspace push` (git → Postman Cloud) and **deploy to AWS via SSM**, then a
-post-deploy smoke test. Deploy runs only if both the QA and performance gates pass. AWS auth is
-**keyless via GitHub OIDC** — no stored AWS keys; the only repo secret is `POSTMAN_API_KEY`.
+`.github/workflows/ci-cd.yml` gives you the full pipeline: on **every PR and push** it runs spec
+lint + a **QA** run + a **performance load-test** (`postman performance run`, `--pass-if p99<2000`),
+all against the *freshly-built* code in the runner (a breaking or slow change fails here and can't
+merge). On **push to main** it then runs `postman workspace push` (git → Postman Cloud) and
+**deploys to AWS via SSM**, followed by a post-deploy smoke test. Deploy runs only if the QA and
+performance gates pass. AWS auth is **keyless via GitHub OIDC** — no stored AWS keys; the only repo
+secret is `POSTMAN_API_KEY`.
 
 **a. Create the GitHub OIDC provider + deploy role** (once per AWS account):
 

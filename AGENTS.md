@@ -28,16 +28,17 @@ deployed by `runtime-vm/deploy-runtime.sh`; manage it with `./control.sh` (SSM-b
 - `runtime-vm/` — the on-VM stack + `aws/` control config; `scripts/mqtt-webhook-bridge.mjs`
 - `postman/` — collections (`* - QA`, `* - Doc`, `Notifications (MQTT)`), `Production * AWS` envs
 - `frontend/` — React UI + Playwright browser-testing demo
-- `.github/workflows/ci-cd.yml` — lint → QA (fresh code) → perf load-test (vs live AWS) → sync to cloud → deploy → smoke
+- `.github/workflows/ci-cd.yml` — lint → QA + perf load-test (both vs fresh code) → sync to cloud → deploy → smoke
 
 ## Key flows
 - **Refund webhook:** `POST /payments/refund {"paymentId":"pay-001"}` → Payments worker POSTs
   `payment.refunded` to `REFUND_WEBHOOK_URL` (set in the payments service's env on the VM).
 - **MQTT:** Postman publishes to `broker.hivemq.com:1883` topic `postman-api-catalog-demo/notifications`
   → the always-on `mqtt-bridge` forwards `notification.processed` to `NOTIFICATION_WEBHOOK_URL`.
-- **CI/CD:** Postman local (git) is source of truth; deploy to AWS only if the QA gate (against the
-  freshly-built code) **and** the performance gate (`postman performance run` vs live AWS, `--pass-if
-  p99<2000`) both pass. The perf job also runs on manual `workflow_dispatch`.
+- **CI/CD:** Postman local (git) is source of truth; deploy to AWS only if the QA gate and the
+  performance gate — both `postman performance run`/QA against the **freshly-built code** in the
+  runner (`--pass-if p99<2000`) — pass. One perf job, same behaviour on PR, push, and dispatch.
+  `performance run` has no `--env-var`, so baseUrl comes from `.github/perf-local.env.yaml`.
 
 ## Gotchas
 - Services run as `ubuntu` (never root — SSM runs as root). Node 20+.

@@ -54,14 +54,15 @@ analyzed via `npm run app:test`). Defaults to the AWS host.
 
 Postman **local (git) is the source of truth**; the cloud workspace is the published mirror.
 
-- **PR → main:** spec lint (local `*.yaml`) + QA collection against the **freshly-built** Orders
-  code (an ephemeral `node` server in the runner) — a breaking change fails here.
-- **push → main:** the same gate, then a **performance load-test** (`postman performance run`,
-  5 VUs, `--pass-if p99<2000`) against live AWS, then **`postman workspace push`** (local → Postman
-  Cloud) and **deploy to AWS** via SSM (`git pull` + `deploy-runtime.sh`), then a post-deploy smoke test.
-- Deploy only runs if **both** the test gate and the performance gate pass. The performance job can
-  also be run on demand (**Actions → Run workflow**). AWS auth is via **GitHub OIDC** (no stored
-  keys); the only repo secret is `POSTMAN_API_KEY`.
+- **PR → main:** spec lint (local `*.yaml`) + QA collection + a performance load-test, all against
+  the **freshly-built** Orders code (an ephemeral `node` server in the runner) — a breaking *or*
+  slow change fails here.
+- **push → main:** after the gates pass, **`postman workspace push`** (local → Postman Cloud) and
+  **deploy to AWS** via SSM (`git pull` + `deploy-runtime.sh`), then a post-deploy smoke test.
+- The **performance load-test** (`postman performance run`, 5 VUs, `--pass-if p99<2000`) runs on the
+  same freshly-built code, on PRs and pushes alike, and gates the deploy. Deploy runs only if the QA
+  and performance gates pass. AWS auth is via **GitHub OIDC** (no stored keys); the only repo secret
+  is `POSTMAN_API_KEY`.
 
 ## Managing the AWS backend
 
