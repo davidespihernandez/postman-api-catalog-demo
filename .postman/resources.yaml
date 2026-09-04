@@ -1,6 +1,5 @@
 workspace:
   id: 37875132-fcb4-4a68-ae65-2913c91fdd60
-
 localResources:
   specs:
     - ../frontend/package.json
@@ -9,9 +8,6 @@ localResources:
     - ../users.yaml
     - ../payments.yaml
     - ../orders.yaml
-
-# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
-
 cloudResources:
   collections:
     ../postman/collections/Orders GET performance test: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855
@@ -34,6 +30,9 @@ cloudResources:
     ../postman/environments/Mock Users.environment.yaml: 53522859-b7d1ec90-5380-4bc7-8fcc-81aa67db2999
     ../postman/environments/Notifications MQTT.environment.yaml: 53522859-c0f019cf-045d-48e6-8622-4fa4be3c6311
     ../postman/environments/Mock Orders.environment.yaml: 53522859-cbef87b8-bd00-494c-9bd7-e128428b4d26
+    ../postman/environments/Local Orders.environment.yaml: 53522859-dee5b0b9-2993-4b45-b0dc-8f2bd3f691a6
+    ../postman/environments/Local Payments.environment.yaml: 53522859-51287dd0-19bb-4d4c-9c60-f0a865e769dd
+    ../postman/environments/Local Users.environment.yaml: 53522859-80b9132d-2921-4d9f-b05a-f79fe3e1f665
   specs:
     ../index.yaml: 938c2265-93e0-4b10-b1c7-a56562cdde6b
     ../payment-refund-webhook.yaml: e0d2234b-6fd1-44e9-a471-ddf280333793
