@@ -43,8 +43,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
+          cache: npm            # cache ~/.npm keyed on package-lock.json — fast repeat installs
       - name: Install deps
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --no-fund
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI
@@ -83,8 +84,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "22"
+          cache: npm            # cache ~/.npm keyed on package-lock.json — fast repeat installs
       - name: Install deps
-        run: npm ci
+        run: npm ci --prefer-offline --no-audit --no-fund
       - name: Install Postman CLI
         run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
       - name: Login to Postman CLI

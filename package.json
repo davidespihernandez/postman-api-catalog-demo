@@ -13,6 +13,10 @@
     "start:orders": "node apis/orders/src/server.mjs",
     "start:payments": "node apis/payments/src/server.mjs",
     "start:users": "node apis/users/src/server.mjs",
+    "dev": "node --watch apis/orders/src/server.mjs & node --watch apis/payments/src/server.mjs & node --watch apis/users/src/server.mjs & wait",
+    "dev:orders": "node --watch apis/orders/src/server.mjs",
+    "dev:payments": "node --watch apis/payments/src/server.mjs",
+    "dev:users": "node --watch apis/users/src/server.mjs",
     "mqtt-bridge": "node scripts/mqtt-webhook-bridge.mjs",
     "test:ui": "frontend/node_modules/.bin/playwright test --config frontend/playwright.config.js",
     "app:test": "postman app test --report-events"

@@ -1,0 +1,7 @@
+name: Local Payments
+values:
+  - key: baseUrl
+    value: 'http://127.0.0.1:8788'
+  - key: refundWebhookUrl
+    value: 'https://7ygtn6bgtcbmv8k2oigij4xc0.webhook.pstmn.io/'
+color: 0

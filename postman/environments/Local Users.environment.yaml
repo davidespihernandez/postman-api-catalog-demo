@@ -1,0 +1,5 @@
+name: Local Users
+values:
+  - key: baseUrl
+    value: 'http://127.0.0.1:8789'
+color: 0
