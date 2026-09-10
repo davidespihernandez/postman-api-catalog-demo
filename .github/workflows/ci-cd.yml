@@ -178,3 +178,25 @@ jobs:
           # confirm the deployed AWS API passes the same QA suite
           for i in $(seq 1 20); do curl -sf "https://$AWS_HOST/health" >/dev/null 2>&1 && break; sleep 4; done
           postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}" --bail
+
+  docs:
+    name: Docs (Fern developer portal)
+    needs: test
+    # Validate the docs + specs on every PR/push; publish the portal only on push to main.
+    # Independent of the AWS deploy — the same specs power the API reference.
+    runs-on: ubuntu-latest
+    env:
+      FERN_TOKEN: ${{ secrets.FERN_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Install Fern CLI
+        run: npm install -g fern-api
+      - name: Validate docs + specs (fern check)   # no token needed
+        run: fern check
+      - name: Publish Fern docs
+        # Skips (stays green) until you add the FERN_TOKEN repo secret; then publishes on main.
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.FERN_TOKEN != ''
+        run: fern generate --docs

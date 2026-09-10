@@ -1,0 +1,32 @@
+---
+title: Payment refund webhook
+subtitle: How the payment.refunded event is delivered
+---
+
+When you refund a payment, the Payments API emits an asynchronous **`payment.refunded`**
+event to a configured webhook URL.
+
+## Trigger
+
+```bash
+curl -X POST https://18-157-170-15.nip.io/payments/refund \
+  -H "content-type: application/json" \
+  -d '{"paymentId":"pay-001"}'
+```
+
+## Event payload
+
+The Payments service then POSTs to your webhook:
+
+```json
+{
+  "event": "payment.refunded",
+  "paymentId": "pay-001",
+  "refundedAt": "2026-01-01T12:00:00.000Z"
+}
+```
+
+<Note>
+The webhook destination is configured server-side (`REFUND_WEBHOOK_URL`). In the demo it
+points at a Postman-hosted webhook so you can watch the event arrive in real time.
+</Note>

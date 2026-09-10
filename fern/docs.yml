@@ -1,0 +1,39 @@
+instances:
+  - url: https://postman-api-catalog-demo.docs.buildwithfern.com
+title: Postman API Catalog Demo | Documentation
+tabs:
+  guides:
+    display-name: Guides
+    icon: fa-solid fa-book
+  api:
+    display-name: API Reference
+    icon: fa-solid fa-code
+navigation:
+  - tab: guides
+    layout:
+      - section: Getting started
+        contents:
+          - page: Introduction
+            path: ./pages/introduction.mdx
+          - page: Payment refund webhook
+            path: ./pages/webhooks.mdx
+          - page: Async notifications (MQTT)
+            path: ./pages/mqtt.mdx
+  - tab: api
+    layout:
+      - api: Orders API
+        api-name: orders
+      - api: Payments API
+        api-name: payments
+      - api: Users API
+        api-name: users
+navbar-links:
+  - type: minimal
+    text: Postman workspace
+    url: https://www.postman.com/
+  - type: filled
+    text: Live API
+    url: https://18-157-170-15.nip.io/health
+colors:
+  accentPrimary: '#FF6C37'
+  background: '#0b0b0b'
