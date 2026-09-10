@@ -1,6 +1,16 @@
+# yaml-language-server: $schema=https://schema.buildwithfern.dev/docs-yml.json
 instances:
   - url: https://postman-api-catalog-demo.docs.buildwithfern.com
 title: Postman API Catalog Demo | Documentation
+favicon: ./assets/favicon.svg
+logo:
+  light: ./assets/logo-light.svg
+  dark: ./assets/logo-dark.svg
+  height: 26
+  href: /
+landing-page:
+  page: Home
+  path: ./pages/home.mdx
 tabs:
   guides:
     display-name: Guides
@@ -34,6 +44,14 @@ navbar-links:
   - type: filled
     text: Live API
     url: https://18-157-170-15.nip.io/health
+layout:
+  searchbar-placement: header
+  tabs-placement: header
+  header-height: 64px
 colors:
-  accentPrimary: '#FF6C37'
-  background: '#0b0b0b'
+  accent-primary:
+    light: '#C2410C'
+    dark: '#FF8A5B'
+  background:
+    light: '#ffffff'
+    dark: '#0b0b0b'
