@@ -181,9 +181,9 @@ jobs:
 
   docs:
     name: Docs (Fern developer portal)
-    needs: test
-    # Validate the docs + specs on every PR/push; publish the portal only on push to main.
-    # Independent of the AWS deploy — the same specs power the API reference.
+    needs: [test, performance]
+    # Same gate as the deploy: only after QA + performance pass. Validates docs + specs on
+    # every PR/push (fern check); publishes the portal on push to main, alongside Sync + Deploy.
     runs-on: ubuntu-latest
     env:
       FERN_TOKEN: ${{ secrets.FERN_TOKEN }}

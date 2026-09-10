@@ -28,7 +28,9 @@ deployed by `runtime-vm/deploy-runtime.sh`; manage it with `./control.sh` (SSM-b
 - `runtime-vm/` — the on-VM stack + `aws/` control config; `scripts/mqtt-webhook-bridge.mjs`
 - `postman/` — collections (`* - QA`, `* - Doc`, `Notifications (MQTT)`), `Production * AWS` envs
 - `frontend/` — React UI + Playwright browser-testing demo
-- `.github/workflows/ci-cd.yml` — lint → QA + perf load-test (both vs fresh code) → sync to cloud → deploy → smoke
+- `fern/` — Fern developer portal (`docs.yml`; `apis/{orders,payments,users}/generators.yml` point at
+  the root OpenAPI specs; `pages/*.mdx` guides). `fern check` / `fern docs dev` / `fern generate --docs`.
+- `.github/workflows/ci-cd.yml` — lint → QA + perf load-test (both vs fresh code) → sync to cloud → deploy → smoke; `docs` job runs `fern check` (all events) + publishes on main when `FERN_TOKEN` is set
 
 ## Key flows
 - **Refund webhook:** `POST /payments/refund {"paymentId":"pay-001"}` → Payments worker POSTs

@@ -64,6 +64,26 @@ Postman **local (git) is the source of truth**; the cloud workspace is the publi
   and performance gates pass. AWS auth is via **GitHub OIDC** (no stored keys); the only repo secret
   is `POSTMAN_API_KEY`.
 
+## Developer portal (Fern)
+
+A **Fern** developer portal (`fern/`) is generated from the same `orders.yaml` / `payments.yaml` /
+`users.yaml` OpenAPI specs — one contract driving the Postman workspace, the CI, and the docs site.
+(Fern is a Postman company.) It publishes three API-reference sections with an interactive **API
+Explorer** (wired to the live AWS host), plus guide pages for the refund webhook and MQTT flow.
+
+```bash
+npm install -g fern-api
+fern docs dev          # local preview at http://localhost:3210 (no login)
+fern check             # validate docs + specs (runs in CI too)
+fern login && fern generate --docs   # publish to <org>.docs.buildwithfern.com
+```
+
+**CI:** the `docs` job runs `fern check` on every PR/push, and publishes on push to `main` — but
+only once a `FERN_TOKEN` repo secret exists (it skips cleanly until then). Get the token with
+`fern token` (after `fern login`) or from the Fern dashboard's API keys page, then add it under
+Settings → Secrets and variables → Actions. Editing a spec and re-running `fern generate --docs`
+(or pushing to `main`) updates the portal — docs-as-code.
+
 ## Managing the AWS backend
 
 ```bash
