@@ -24,7 +24,9 @@ response:
         },
         "paths": {
           "key_0": 5307.161398901075,
-          "key_1": true
+          "key_1": true,
+          "key_2": 3253,
+          "key_3": "string"
         },
         "servers": [
           {
@@ -37,9 +39,7 @@ response:
           }
         ],
         "components": {
-          "key_0": "string",
-          "key_1": "string",
-          "key_2": false
+          "key_0": "string"
         }
       }
     $type: |-
