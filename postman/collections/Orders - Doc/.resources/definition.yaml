@@ -8,8 +8,8 @@ description: |-
 variables:
   - key: baseUrl
     value: https://18-157-170-15.nip.io
+    disabled: false
     secret: false
   - key: secret
     secret: true
-  - key: secret2
-    secret: true
+    disabled: false
