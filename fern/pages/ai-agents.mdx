@@ -18,6 +18,17 @@ questions grounded in these docs.
 The MCP server exposes a tool that answers natural-language questions about the Retail Commerce
 APIs using retrieval over this documentation (semantic search + a synthesized answer).
 
+## Token-efficient by design
+
+The retrieval happens **server-side**. Instead of loading the entire API reference into the agent's
+context to reason over, the agent sends a question and gets back a **synthesized answer** — so its
+context window only carries the question and a concise reply. That means:
+
+- **Lower token usage** and smaller context for the consuming agent — cheaper, faster agent runs.
+- **No need to preload the whole spec or docs** just to answer "how do I…?" questions.
+
+The search-and-synthesis cost is borne by the documentation platform, not the agent's context.
+
 ## Use it in Postman
 
 1. In Postman, create or open an **AI request**.
