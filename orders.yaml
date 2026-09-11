@@ -79,7 +79,7 @@
                 "summary": "List orders",
                 "responses": {
                     "200": {
-                        "description": "Paginated-style order list. Default to 10 orders per page.",
+                        "description": "Paginated-style order list",
                         "content": {
                             "application/json": {
                                 "schema": {
