@@ -1,9 +1,10 @@
 # Real CI/CD pipeline — Postman local (git) is the source of truth.
-#   PR & push  : spec lint + QA + a performance load-test, ALL against the FRESHLY-BUILT
-#                code in the runner (a breaking or slow change fails here → merge/deploy blocked)
-#   push main  : after those pass, sync local->Postman Cloud, deploy to AWS, post-deploy smoke
-#   Deploy only runs if BOTH the test gate and the performance gate pass
-#                (release `needs: [test, performance]`).
+#   test        : spec lint + QA against the FRESHLY-BUILT code — the gate (a breaking change
+#                 fails here → merge/deploy blocked).
+#   performance : a load-test on the same code, run IN PARALLEL with test (own signal; does NOT
+#                 block deploy or docs, so those aren't held up by the ~1-min load test).
+#   push main   : once test passes, deploy to AWS AND publish the Fern docs — both gate on `test`
+#                 only, and run in parallel with each other and with performance.
 #
 # Requires: repo secret POSTMAN_API_KEY (already set). AWS access via GitHub OIDC
 # (role github-actions-postman-deploy, no stored keys). See README.md.
@@ -74,10 +75,9 @@ jobs:
 
   performance:
     name: Performance (load test — freshly-built code)
-    needs: test
-    # Runs on every event (PR, push to main, manual dispatch): always load-tests the
-    # code being shipped, in the runner. On push to main it also gates the deploy
-    # (release needs it). One job, one behaviour — nothing to explain twice.
+    # No `needs:` — runs in parallel with test (Lint + QA), on every event. It's an
+    # independent signal: a red load-test does NOT block deploy or docs. Remove nothing
+    # from the critical path; just surfaces perf regressions alongside the other checks.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -114,7 +114,7 @@ jobs:
 
   release:
     name: Sync to Cloud + Deploy to AWS
-    needs: [test, performance]
+    needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
@@ -181,9 +181,9 @@ jobs:
 
   docs:
     name: Docs (Fern developer portal)
-    needs: [test, performance]
-    # Same gate as the deploy: only after QA + performance pass. Validates docs + specs on
-    # every PR/push (fern check); publishes the portal on push to main, alongside Sync + Deploy.
+    needs: test
+    # Gates on Lint + QA only (not performance), so docs publish fast and in parallel with the
+    # AWS deploy. Validates docs + specs on every PR/push (fern check); publishes on push to main.
     runs-on: ubuntu-latest
     env:
       FERN_TOKEN: ${{ secrets.FERN_TOKEN }}

@@ -1,6 +1,6 @@
 ---
-title: Postman API Catalog Demo
-subtitle: Three REST APIs — Orders, Payments, and Users — self-hosted on AWS, documented straight from the OpenAPI specs that power the Postman workspace, the CI/CD pipeline, and this portal.
+title: Retail Commerce APIs
+subtitle: Build checkout, fulfillment, and customer experiences on the Retail Commerce platform — Orders, Payments, and Users, with live examples and an interactive API Explorer.
 layout: overview
 hide-toc: true
 ---
@@ -12,10 +12,10 @@ hide-toc: true
     Create, read, update, and delete orders. Try requests live in the API Explorer.
   </Card>
   <Card title="Payments API" icon="fa-solid fa-credit-card" href="/api-reference/payments-api">
-    Manage payments and trigger the `payment.refunded` webhook.
+    Manage payments and receive the `payment.refunded` webhook.
   </Card>
   <Card title="Users API" icon="fa-solid fa-user" href="/api-reference/users-api">
-    Manage users. Full CRUD with request/response examples.
+    Manage customer accounts. Full CRUD with request/response examples.
   </Card>
 </CardGroup>
 
@@ -23,26 +23,25 @@ hide-toc: true
 
 <CardGroup cols={3}>
   <Card title="Introduction" icon="fa-solid fa-rocket" href="/guides/getting-started/introduction">
-    Base URL, conventions, and how the pieces fit together.
+    Base URL, conventions, and how the platform fits together.
   </Card>
   <Card title="Refund webhook" icon="fa-solid fa-arrow-rotate-left" href="/guides/getting-started/payment-refund-webhook">
-    How the async `payment.refunded` event is delivered.
+    How the asynchronous `payment.refunded` event is delivered.
   </Card>
   <Card title="Async notifications" icon="fa-solid fa-tower-broadcast" href="/guides/getting-started/async-notifications-mqtt">
-    Event-driven notifications over MQTT.
+    Real-time, event-driven notifications over MQTT.
   </Card>
 </CardGroup>
 
-## Quick call
+## Make your first call
 
-Every endpoint is live — no auth required. For example:
+Every endpoint is live in the sandbox — no authentication required. For example:
 
 ```bash
 curl https://18-157-170-15.nip.io/orders
 ```
 
 <Note>
-One OpenAPI contract, many outputs: the same specs drive this portal, the **Postman**
-workspace, and generated **SDKs**. Download any spec from its API Reference page and import
-it into Postman.
+Prefer working in your own tools? Download the OpenAPI spec from any API Reference page to
+generate SDKs or import it into your API client.
 </Note>

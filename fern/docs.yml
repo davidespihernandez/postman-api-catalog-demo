@@ -1,7 +1,7 @@
 # yaml-language-server: $schema=https://schema.buildwithfern.dev/docs-yml.json
 instances:
   - url: https://postman-api-catalog-demo.docs.buildwithfern.com
-title: Postman API Catalog Demo | Documentation
+title: Retail Commerce APIs | Developer Portal
 favicon: ./assets/favicon.svg
 logo:
   light: ./assets/logo-light.svg
@@ -39,10 +39,10 @@ navigation:
         api-name: users
 navbar-links:
   - type: minimal
-    text: Postman workspace
-    url: https://www.postman.com/
+    text: Support
+    url: mailto:api-support@retailcommerce.example
   - type: filled
-    text: Live API
+    text: API status
     url: https://18-157-170-15.nip.io/health
 layout:
   searchbar-placement: header

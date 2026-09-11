@@ -27,6 +27,6 @@ The Payments service then POSTs to your webhook:
 ```
 
 <Note>
-The webhook destination is configured server-side (`REFUND_WEBHOOK_URL`). In the demo it
-points at a Postman-hosted webhook so you can watch the event arrive in real time.
+The webhook destination is configured for your account. As soon as a refund is processed,
+the service POSTs the `payment.refunded` event to your registered endpoint.
 </Note>

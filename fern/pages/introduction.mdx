@@ -1,11 +1,11 @@
 ---
 title: Introduction
-subtitle: The Postman API Catalog demo — Orders, Payments, and Users
+subtitle: The Retail Commerce APIs — Orders, Payments, and Users
 ---
 
-Welcome to the developer portal for the **Postman API Catalog demo**. Three small REST
-APIs — **Orders**, **Payments**, and **Users** — self-hosted on AWS, documented straight
-from the same OpenAPI specs that power the Postman workspace and the CI/CD pipeline.
+Welcome to the **Retail Commerce** developer portal. The **Orders**, **Payments**, and **Users**
+APIs power the Retail Commerce platform — everything you need to build checkout, fulfillment,
+and customer-account experiences.
 
 ## Base URL
 
@@ -23,17 +23,12 @@ https://18-157-170-15.nip.io
 | Health | `/health` | `GET https://18-157-170-15.nip.io/health` |
 
 <Note>
-This is a demo API — **no authentication is required**. Use the **API Explorer** in the
-API Reference to send live requests against the running backend.
+No authentication is required in this **sandbox** environment. Use the **API Explorer** in the
+API Reference to send live requests against the running service.
 </Note>
 
-## One contract, many outputs
+## Built from OpenAPI
 
-The `orders.yaml`, `payments.yaml`, and `users.yaml` OpenAPI specs are the single source
-of truth. The same files:
-
-- power this **Fern developer portal**,
-- are published to the **Postman workspace** (Spec Hub + collections),
-- and can generate **SDKs** via `fern generate`.
-
-Download any spec from its API Reference page and import it into Postman to explore it there too.
+Every endpoint on this portal is generated from our OpenAPI specifications, so the docs always
+match the live API. **Download the OpenAPI spec** from any API Reference page to generate SDKs
+in your language of choice or import it into your API client.
