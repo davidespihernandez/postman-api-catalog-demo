@@ -6,7 +6,7 @@ request:
     Accept: application/json
   pathVariables:
     - key: id
-      value: ord-001
+      value: ord-notfound
       disabled: false
       description: Order identifier
   body:
