@@ -29,6 +29,8 @@ navigation:
             path: ./pages/webhooks.mdx
           - page: Async notifications (MQTT)
             path: ./pages/mqtt.mdx
+          - page: AI agents & MCP
+            path: ./pages/ai-agents.mdx
   - tab: api
     layout:
       - api: Orders API

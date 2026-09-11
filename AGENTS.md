@@ -6,7 +6,8 @@ GitHub: https://github.com/davidespihernandez/postman-api-catalog-demo
 
 Postman **API Catalog** demo: three REST APIs + Postman workspace (QA + Doc collections) +
 **Insights/Runtime Health**, an async **MQTT** flow, and a **payment refund webhook** — all
-self-hosted on **AWS** and driven through a real **CI/CD pipeline**.
+self-hosted on **AWS**, driven through a real **CI/CD pipeline**, and documented via a branded
+**Fern developer portal** (with an MCP server for AI agents) generated from the same OpenAPI specs.
 
 ## Architecture
 
@@ -30,21 +31,45 @@ deployed by `runtime-vm/deploy-runtime.sh`; manage it with `./control.sh` (SSM-b
 - `frontend/` — React UI + Playwright browser-testing demo
 - `fern/` — Fern developer portal (`docs.yml`; `apis/{orders,payments,users}/generators.yml` point at
   the root OpenAPI specs; `pages/*.mdx` guides). `fern check` / `fern docs dev` / `fern generate --docs`.
-- `.github/workflows/ci-cd.yml` — lint → QA + perf load-test (both vs fresh code) → sync to cloud → deploy → smoke; `docs` job runs `fern check` (all events) + publishes on main when `FERN_TOKEN` is set
+- `.github/workflows/ci-cd.yml` — jobs: `test` (lint+QA, the gate) · `performance` (load-test, runs in parallel, non-blocking) · `release` (sync + deploy to AWS, push-to-main) · `docs` (Fern publish, push-to-main). `release` and `docs` need `test` only.
+- `.github/perf-local.env.yaml` — baseUrl for the perf load-test (`performance run` has no `--env-var`)
 
 ## Key flows
 - **Refund webhook:** `POST /payments/refund {"paymentId":"pay-001"}` → Payments worker POSTs
   `payment.refunded` to `REFUND_WEBHOOK_URL` (set in the payments service's env on the VM).
 - **MQTT:** Postman publishes to `broker.hivemq.com:1883` topic `postman-api-catalog-demo/notifications`
   → the always-on `mqtt-bridge` forwards `notification.processed` to `NOTIFICATION_WEBHOOK_URL`.
-- **CI/CD:** Postman local (git) is source of truth; deploy to AWS only if the QA gate and the
-  performance gate — both `postman performance run`/QA against the **freshly-built code** in the
-  runner (`--pass-if p99<2000`) — pass. One perf job, same behaviour on PR, push, and dispatch.
-  `performance run` has no `--env-var`, so baseUrl comes from `.github/perf-local.env.yaml`.
+- **CI/CD:** git is source of truth. `test` (spec lint + QA vs freshly-built code) is **the gate** —
+  a breaking change fails here → no merge/deploy. `performance` (`postman performance run`,
+  `--pass-if p99<2000`) runs **in parallel and is non-blocking**. On push to main, `release`
+  (workspace push + deploy to AWS via SSM) and `docs` (`fern generate --docs`) both gate on `test`
+  only. The deploy step self-heals the VM's git remote (anonymous public URL, HTTP/1.1, retry).
+- **Fern docs:** `api:` nav items auto-generate the API reference from the specs; `pages/*.mdx` are
+  guides. MCP server at `<docs>/_mcp/server` (Ask Fern RAG, read-only), agent index at `<docs>/llms.txt`.
 
 ## Gotchas
 - Services run as `ubuntu` (never root — SSM runs as root). Node 20+.
 - `*.webhook.pstmn.io` has a CNAME glibc won't follow on Linux → pinned in `/etc/hosts` by deploy.
 - Manage via SSM (`./control.sh`), not SSH (subnet NACL blocks 22).
+- Collection `variables` must be a **list** (`- key:` / `value:`), not a map — `workspace push` 400s on the map form.
+- Fern's docs MCP is read-only (RAG over docs); to *execute* the API, generate an MCP from the spec/collection in Postman AI Agent Builder.
 
-See `README.md` (overview + demos), `AWS-INSIGHTS.md` (provisioning), `runtime-vm/README.md` (stack).
+## Replicating from a fork (for humans or AI agents)
+
+To stand this up on new accounts, follow **`AWS-INSIGHTS.md`** end to end — it's the ordered,
+self-contained runbook. Do this first, then the numbered steps:
+
+0. **Replace all account-specific values** — see **"Make it yours (fork checklist)"** in
+   `AWS-INSIGHTS.md` (base URL/host, AWS instance/region/deploy-role, fork owner in the deploy git
+   URL, Postman collection/env IDs, Fern org + docs subdomain, repo secrets).
+1. **Postman** — connect the git workspace to your team; capture `INSIGHTS_WORKSPACE_ID` / `INSIGHTS_SYSTEM_ENV`.
+2. **VM** — provision EC2 `t4g.small` + Elastic IP; **enable SSM**; store the API key as an SSM SecureString.
+3. **Deploy** — via SSM run `deploy-runtime.sh`; install the 1-min synthetic-traffic cron.
+4. **CI/CD** — create the GitHub OIDC role; add repo secrets `POSTMAN_API_KEY` + `FERN_TOKEN`; edit the `env:` block in `.github/workflows/ci-cd.yml`.
+5. **Fern portal** — set your org in `fern/`, `fern login`, `fern generate --docs`.
+
+Prereqs: Postman Enterprise (API Catalog + Insights), an AWS account, a Fern account, Node 20+, and
+the `aws` / `postman` / `fern-api` CLIs.
+
+See `README.md` (overview + demos), `AWS-INSIGHTS.md` (full runbook + fork checklist),
+`runtime-vm/README.md` (on-VM stack).

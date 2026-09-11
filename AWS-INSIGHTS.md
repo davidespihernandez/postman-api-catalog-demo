@@ -5,7 +5,8 @@ can reproduce it. It provisions an **always-on** EC2 VM that runs three plain **
 the **Postman Insights agent** (so the API Catalog's Runtime Health / observed endpoints / error
 rates stay populated 24/7), the async **MQTT notifications** bridge, and the **payment refund
 webhook** — all behind Caddy TLS, managed over **AWS SSM** (no public SSH), and deployed by a real
-**GitHub Actions CI/CD pipeline**.
+**GitHub Actions CI/CD pipeline**. The same pipeline also publishes a branded **Fern developer
+portal** (with an MCP server for AI agents) from the same OpenAPI specs.
 
 > New to the repo? Read [`README.md`](README.md) (overview + how to demo each feature) first, then
 > follow this to build your own copy.
@@ -33,7 +34,10 @@ webhook** — all behind Caddy TLS, managed over **AWS SSM** (no public SSH), an
   → API keys → `PMAK-…`). This one key is used by the Insights agent *and* the CI.
 - An **AWS account** where you can create EC2 / IAM / SSM resources, and the **`aws` CLI** logged in
   (`aws sso login`, or static creds). `AWS_REGION=eu-central-1` throughout.
-- A **GitHub repo** (fork of this one) if you want the CI/CD pipeline.
+- A **GitHub repo** (fork of this one) if you want the CI/CD pipeline. CI needs two repo secrets:
+  `POSTMAN_API_KEY` and (for the docs) `FERN_TOKEN`.
+- A **Fern account** (<https://buildwithfern.com>) + the **`fern-api` CLI** (`npm i -g fern-api`) if
+  you want the developer portal.
 - Local: `git`, Node 20+, `bash` (for `control.sh`).
 
 ## Roadmap (do these in order)
@@ -45,7 +49,30 @@ webhook** — all behind Caddy TLS, managed over **AWS SSM** (no public SSH), an
 4. **Deploy** — one SSM bootstrap that clones the repo, writes `runtime-vm/.env`, runs
    `deploy-runtime.sh`.
 5. **Keep Runtime Health fresh** — install the 1-minute synthetic-traffic cron.
-6. **CI/CD (optional)** — GitHub OIDC role so pushes auto-deploy.
+6. **CI/CD** — GitHub OIDC role + repo secrets so pushes auto-deploy the API and republish the docs.
+7. **Developer portal (Fern)** — publish the branded docs + MCP server to your own Fern org.
+
+---
+
+## Make it yours (fork checklist)
+
+This demo is wired to one person's accounts. After forking, replace these with **your own** before
+(or as) you follow the steps. Run this to find most of them:
+
+```bash
+grep -rn "18-157-170-15\|postman-api-catalog-demo\|i-0b7891\|005904641462\|davidespihernandez" . \
+  --exclude-dir=node_modules --exclude-dir=.git
+```
+
+| Thing | Current value | Where to change |
+|-------|---------------|-----------------|
+| API base URL (VM host) | `18-157-170-15.nip.io` | root `orders.yaml`/`payments.yaml`/`users.yaml` (`servers`), `apis/*/openapi.json`, `postman/environments/Production * AWS`, `fern/docs.yml` + `fern/pages/*` |
+| AWS instance / host / region / deploy-role ARN | `i-0b7891…`, `18-157-170-15.nip.io`, `eu-central-1`, `…:role/github-actions-postman-deploy` | `.github/workflows/ci-cd.yml` `env:`, `runtime-vm/aws/aws.env` |
+| Deploy git URL (fork owner) | `davidespihernandez/postman-api-catalog-demo` | `.github/workflows/ci-cd.yml` "Deploy to AWS" step |
+| Postman collection / env IDs | `53522859-…` | `.github/workflows/ci-cd.yml` `env:` (read from `.postman/resources.yaml` after your first sync) |
+| Fern org + docs subdomain | `postman-api-catalog-demo` | `fern/fern.config.json` (`organization`), `fern/docs.yml` (`instances.url`) |
+| MQTT topic (optional) | `postman-api-catalog-demo/notifications` | `runtime-vm/deploy-runtime.sh` default + the "Notifications (MQTT)" collection |
+| Repo secrets | — | GitHub → Actions: `POSTMAN_API_KEY`, `FERN_TOKEN` |
 
 ---
 
@@ -68,6 +95,10 @@ webhook** — all behind Caddy TLS, managed over **AWS SSM** (no public SSH), an
 
 You now have: `POSTMAN_API_KEY`, `INSIGHTS_WORKSPACE_ID`, `INSIGHTS_SYSTEM_ENV`, and (optional) two
 webhook URLs.
+
+> **Gotcha — collection variables.** In each collection's `.resources/definition.yaml`, `variables`
+> must be a **list** (`- key:` / `value:`), not a map (`key: value`). `postman workspace push`
+> rejects the map form with **HTTP 400** and fails the CI sync.
 
 ---
 
@@ -202,13 +233,19 @@ dashboard shows meaningful, non-flat data. Runtime Health reflects roughly the l
 
 ## 6. CI/CD (optional but recommended)
 
-`.github/workflows/ci-cd.yml` gives you the full pipeline: on **every PR and push** it runs spec
-lint + a **QA** run + a **performance load-test** (`postman performance run`, `--pass-if p99<2000`),
-all against the *freshly-built* code in the runner (a breaking or slow change fails here and can't
-merge). On **push to main** it then runs `postman workspace push` (git → Postman Cloud) and
-**deploys to AWS via SSM**, followed by a post-deploy smoke test. Deploy runs only if the QA and
-performance gates pass. AWS auth is **keyless via GitHub OIDC** — no stored AWS keys; the only repo
-secret is `POSTMAN_API_KEY`.
+`.github/workflows/ci-cd.yml` is the full pipeline (all jobs run against the *freshly-built* code):
+
+- **test** (every PR & push) — spec lint + **QA**. This is the gate: a breaking change fails here and
+  can't merge or deploy.
+- **performance** (every PR & push, in parallel with test) — a `postman performance run` load-test
+  (`--pass-if p99<2000`). An independent signal; it does **not** block deploy or docs.
+- **release** (push to main, needs `test`) — `postman workspace push` (git → Postman Cloud) +
+  **deploy to AWS via SSM** + post-deploy smoke.
+- **docs** (push to main, needs `test`) — republish the **Fern portal** (`fern generate --docs`); see
+  step 7.
+
+AWS auth is **keyless via GitHub OIDC** — no stored AWS keys. Repo secrets: **`POSTMAN_API_KEY`** and
+**`FERN_TOKEN`** (step 7).
 
 **a. Create the GitHub OIDC provider + deploy role** (once per AWS account):
 
@@ -242,7 +279,8 @@ aws iam put-role-policy --role-name github-actions-postman-deploy --policy-name 
 echo "DEPLOY_ROLE=arn:aws:iam::$ACCOUNT_ID:role/github-actions-postman-deploy"
 ```
 
-**b. Add the repo secret:** `POSTMAN_API_KEY` (Settings → Secrets and variables → Actions).
+**b. Add the repo secrets:** `POSTMAN_API_KEY` now, and `FERN_TOKEN` in step 7 (Settings → Secrets
+and variables → Actions).
 
 **c. Edit the `env:` block at the top of `.github/workflows/ci-cd.yml`** to your values:
 `AWS_REGION`, `AWS_INSTANCE_ID` (`$IID`), `AWS_HOST` (`$HOSTNAME`), `DEPLOY_ROLE` (printed above),
@@ -251,6 +289,31 @@ and the Postman ids `ORDERS_QA_COLLECTION`, `ORDERS_PERF_COLLECTION`, and `AWS_O
 
 That's it — push to `main` and the pipeline lints, tests the new code, syncs the workspace, and
 redeploys the VM.
+
+---
+
+## 7. Developer portal (Fern)
+
+`fern/` generates a branded docs site **and an MCP server** from the same OpenAPI specs.
+
+1. **Install:** `npm i -g fern-api`.
+2. **Make it your org:** set `organization` in `fern/fern.config.json` and `instances.url` in
+   `fern/docs.yml` to your Fern org (`<org>.docs.buildwithfern.com`). Repoint the base URL and navbar
+   links in `fern/docs.yml` and `fern/pages/*` to your VM host.
+3. **Preview:** `fern docs dev` → <http://localhost:3210> (hot-reloads; no login).
+4. **First publish:** `fern login`, then `fern generate --docs` → live at `<org>.docs.buildwithfern.com`.
+5. **CI auto-publish:** get a token — `fern token` (or the Fern dashboard's API keys page) — and add
+   it as the repo secret **`FERN_TOKEN`**. The `docs` job then republishes on every push to main.
+6. **AI / MCP:** with **Ask Fern** enabled, the site hosts an MCP server at `<docs>/_mcp/server` and
+   an agent index at `<docs>/llms.txt`.
+   - Add the MCP URL to a Postman **AI request → Tools** to answer questions *about* the API
+     (read-only RAG over the docs).
+   - To let an agent *execute* the API (e.g. "list the last 2 orders"), generate an **executable**
+     MCP from the collection/spec via Postman's **AI Agent Builder → MCP Generator** — the Fern MCP
+     does not call endpoints.
+
+`fern check` validates the config + specs (runs in CI on every event). The API Reference is
+auto-generated from the specs — never hand-written.
 
 ---
 

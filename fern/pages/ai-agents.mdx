@@ -1,0 +1,38 @@
+---
+title: AI agents & MCP
+subtitle: Query the Retail Commerce APIs from AI agents — via MCP and llms.txt
+---
+
+This documentation is built for **agents as well as humans**. Every page ships as clean
+Markdown, and the site hosts a **Model Context Protocol (MCP)** server so AI tools can answer
+questions grounded in these docs.
+
+## Endpoints
+
+| Resource | URL |
+|----------|-----|
+| MCP server | `https://postman-api-catalog-demo.docs.buildwithfern.com/_mcp/server` |
+| Docs index for LLMs | `https://postman-api-catalog-demo.docs.buildwithfern.com/llms.txt` |
+| Markdown for any page | append `.md` to its URL |
+
+The MCP server exposes a tool that answers natural-language questions about the Retail Commerce
+APIs using retrieval over this documentation (semantic search + a synthesized answer).
+
+## Use it in Postman
+
+1. In Postman, create or open an **AI request**.
+2. Open the **Tools** tab → **Add Server**.
+3. Choose **URL (streamable HTTP)** and enter the MCP server URL above, then **Add Server**.
+4. Ask questions such as *"How do I list orders?"* or *"How many orders are returned per page?"* —
+   the agent answers from these docs, and the answers update automatically when the docs change.
+
+## Use it in a coding agent
+
+MCP-compatible clients (Claude Code, Cursor, VS Code) can connect to the same URL — point your
+client's MCP configuration at `.../_mcp/server`.
+
+<Note>
+The MCP tool is read-only: it answers questions *about* the API. To let an agent *call* the
+endpoints, generate an executable MCP server from the OpenAPI spec (for example with Postman's
+AI Agent Builder).
+</Note>

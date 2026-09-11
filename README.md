@@ -50,26 +50,34 @@ refund webhook.
 from a browser so Postman can capture the traffic during Playwright tests (`npm run test:ui`,
 analyzed via `npm run app:test`). Defaults to the AWS host.
 
+**6. Developer portal + AI/MCP (Fern)** — a branded **Fern** portal (`fern/`) auto-generated from the
+same OpenAPI specs, with an interactive API Explorer. It also hosts an **MCP server**
+(`<docs>/_mcp/server`) and an `llms.txt` index so AI agents can query the docs — add the MCP URL to a
+Postman **AI request → Tools**. See **Developer portal (Fern)** below.
+
 ## CI/CD pipeline (`.github/workflows/ci-cd.yml`)
 
 Postman **local (git) is the source of truth**; the cloud workspace is the published mirror.
 
-- **PR → main:** spec lint (local `*.yaml`) + QA collection + a performance load-test, all against
-  the **freshly-built** Orders code (an ephemeral `node` server in the runner) — a breaking *or*
-  slow change fails here.
-- **push → main:** after the gates pass, **`postman workspace push`** (local → Postman Cloud) and
-  **deploy to AWS** via SSM (`git pull` + `deploy-runtime.sh`), then a post-deploy smoke test.
-- The **performance load-test** (`postman performance run`, 5 VUs, `--pass-if p99<2000`) runs on the
-  same freshly-built code, on PRs and pushes alike, and gates the deploy. Deploy runs only if the QA
-  and performance gates pass. AWS auth is via **GitHub OIDC** (no stored keys); the only repo secret
-  is `POSTMAN_API_KEY`.
+- **PR & push:** spec lint (local `*.yaml`) + a QA collection run against the **freshly-built** Orders
+  code (an ephemeral `node` server in the runner) — this is **the gate**; a breaking change fails here
+  and can't merge or deploy.
+- **performance:** a `postman performance run` load-test (5 VUs, `--pass-if p99<2000`) on the same
+  freshly-built code, running **in parallel** with lint+QA. It's an independent signal and does **not**
+  block deploy or docs.
+- **push → main:** once lint+QA pass, **`postman workspace push`** (local → Postman Cloud) + **deploy
+  to AWS** via SSM + post-deploy smoke, and the **Fern docs** republish — all in parallel.
+- AWS auth is via **GitHub OIDC** (no stored keys). Repo secrets: `POSTMAN_API_KEY` and `FERN_TOKEN`.
 
 ## Developer portal (Fern)
 
 A **Fern** developer portal (`fern/`) is generated from the same `orders.yaml` / `payments.yaml` /
 `users.yaml` OpenAPI specs — one contract driving the Postman workspace, the CI, and the docs site.
-(Fern is a Postman company.) It publishes three API-reference sections with an interactive **API
-Explorer** (wired to the live AWS host), plus guide pages for the refund webhook and MQTT flow.
+(Fern is a Postman company.) It publishes a Home landing page + three API-reference sections with an
+interactive **API Explorer** (wired to the live AWS host), plus guide pages for the refund webhook,
+MQTT flow, and AI agents. With **Ask Fern** enabled it also serves an **MCP server** at
+`<docs>/_mcp/server` and an agent index at `<docs>/llms.txt` (read-only RAG over the docs; to let an
+agent *execute* the API, generate an MCP from the spec in Postman AI Agent Builder).
 
 ```bash
 npm install -g fern-api
