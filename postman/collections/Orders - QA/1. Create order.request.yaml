@@ -24,6 +24,7 @@ scripts:
       pm.test('Field exists: status', function () { pm.expect(body).to.have.property('status'); });
       pm.test('Field exists: total', function () { pm.expect(body).to.have.property('total'); });
       pm.test('Field exists: currency', function () { pm.expect(body).to.have.property('currency'); });
+      pm.test('Response has exactly 5 fields', function () { pm.expect(Object.keys(body)).to.have.lengthOf(5); });
 
       // Value assertions
       pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });
