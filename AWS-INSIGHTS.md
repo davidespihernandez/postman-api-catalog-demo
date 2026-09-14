@@ -312,8 +312,9 @@ redeploys the VM.
      MCP from the collection/spec via Postman's **AI Agent Builder → MCP Generator** — the Fern MCP
      does not call endpoints.
 
-`fern check` validates the config + specs (runs in CI on every event). The API Reference is
-auto-generated from the specs — never hand-written.
+The `docs` job runs **only on push to `main`** (not on PRs); it runs `fern check` then publishes.
+Locally, `fern check` validates the config + specs anytime. The API Reference is auto-generated from
+the specs — never hand-written.
 
 ---
 
