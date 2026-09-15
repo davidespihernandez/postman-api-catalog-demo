@@ -12,10 +12,12 @@ module.exports = {
     targets: {
         default: {
             environment: 'Production Orders AWS',
-            // Referenced by name. UID for reference / disambiguation:
-            // 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
+            // Doc collection = coverage/governance view (documentation examples, `{id}` path
+            // params, no value-locked assertions) → clean matched/not-matched for browser traffic.
+            // UID for reference / disambiguation:
+            // 53522859-0cc5e110-e343-488d-866d-195c6694abfb
             collections: [
-                'Orders - QA'
+                'Orders - Doc'
             ],
         },
 

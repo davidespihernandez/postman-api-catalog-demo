@@ -179,11 +179,28 @@ jobs:
           for i in $(seq 1 20); do curl -sf "https://$AWS_HOST/health" >/dev/null 2>&1 && break; sleep 4; done
           postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}" --bail
 
+  docs-check:
+    name: Docs check (fern check)
+    needs: test
+    # PRs only: validate the Fern config + specs without publishing (no FERN_TOKEN needed).
+    # The publishing `docs` job below is push-to-main only.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+      - name: Install Fern CLI
+        run: npm install -g fern-api
+      - name: Validate docs + specs (fern check)
+        run: fern check
+
   docs:
     name: Docs (Fern developer portal)
     needs: test
     # Push-to-main only — never runs on PRs. Gates on Lint + QA (not performance), so it publishes
-    # fast and in parallel with the AWS deploy.
+    # fast and in parallel with the AWS deploy. (PRs get validation from the docs-check job above.)
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:

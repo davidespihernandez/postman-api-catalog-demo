@@ -86,8 +86,9 @@ fern check             # validate docs + specs (runs in CI too)
 fern login && fern generate --docs   # publish to <org>.docs.buildwithfern.com
 ```
 
-**CI:** the `docs` job runs **only on push to `main`** (never on PRs) — it runs `fern check` then
-publishes, but only once a `FERN_TOKEN` repo secret exists (it skips cleanly until then). Get the token with
+**CI:** on PRs a `docs-check` job runs `fern check` (validation only, no publish, no token). The
+publishing `docs` job runs **only on push to `main`** — `fern check` then `fern generate --docs`, but
+only once a `FERN_TOKEN` repo secret exists (it skips cleanly until then). Get the token with
 `fern token` (after `fern login`) or from the Fern dashboard's API keys page, then add it under
 Settings → Secrets and variables → Actions. Editing a spec and re-running `fern generate --docs`
 (or pushing to `main`) updates the portal — docs-as-code.
