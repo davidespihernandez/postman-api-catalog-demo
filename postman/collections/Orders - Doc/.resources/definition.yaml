@@ -6,19 +6,4 @@ description: |-
   - delay or wait: milliseconds to wait before responding (max 30000)
   - status or error: HTTP status code to return (e.g. 500); error=true also returns 500
 variables:
-  - key: baseUrl
-    value: https://18-157-170-15.nip.io
-    disabled: false
-    secret: false
-  - key: secret
-    secret: true
-    disabled: false
-  - key: postman_api_key_09zf
-    secret: true
-    disabled: false
-    source:
-      provider: postman
-      postman:
-        type: cloud
-        secretId: cafbe15c-7c3f-4467-8973-81ab2e5a8e22
-        vaultId: b76f3a85-6da5-43df-a7ad-851f6d4049c3
+  baseUrl: https://18-157-170-15.nip.io
