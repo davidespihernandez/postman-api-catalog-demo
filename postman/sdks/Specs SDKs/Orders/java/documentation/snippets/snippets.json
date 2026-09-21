@@ -1,0 +1,38 @@
+{
+  "endpoints": {
+    "/health": {
+      "get": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.models.HealthResponse;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tHealthResponse response = ordersSdk.system_.getHealth();\n\t\t\t\n\t\tSystem.out.println(response);\n    }\n}\n"
+    },
+    "/openapi.json": {
+      "get": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.models.OpenApiDocument;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tOpenApiDocument response = ordersSdk.system_.getOpenApi();\n\t\t\t\n\t\tSystem.out.println(response);\n    }\n}\n"
+    },
+    "/orders": {
+      "get": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.models.OrderListResponse;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tOrderListResponse response = ordersSdk.orders.listOrders();\n\t\t\t\n\t\tSystem.out.println(response);\n    }\n}\n",
+      "post": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.models.CreateOrderRequest;\nimport com.orderssdk.models.CreateOrderRequestStatus;\nimport com.orderssdk.models.Order;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tCreateOrderRequest createOrderRequest = CreateOrderRequest.builder()\n\t\t\t.customerId(\"usr-002\")\n\t\t\t.total(99.5D)\n\t\t\t.status(CreateOrderRequestStatus.PENDING)\n\t\t\t.currency(\"USD\")\n\t\t\t.build();\n\n\t\tOrder response = ordersSdk.orders.createOrder(createOrderRequest);\n\t\t\t\n\t\tSystem.out.println(response);\n    }\n}\n"
+    },
+    "/orders/{id}": {
+      "get": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.models.Order;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tOrder response = ordersSdk.orders.getOrder(\"ord-001\");\n\t\t\t\n\t\tSystem.out.println(response);\n    }\n}\n",
+      "put": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.models.Order;\nimport com.orderssdk.models.UpdateOrderRequest;\nimport com.orderssdk.models.UpdateOrderRequestStatus;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tUpdateOrderRequest updateOrderRequest = UpdateOrderRequest.builder()\n\t\t\t.customerId(\"usr-003\")\n\t\t\t.total(149.99D)\n\t\t\t.status(UpdateOrderRequestStatus.PENDING)\n\t\t\t.currency(\"EUR\")\n\t\t\t.build();\n\n\t\tOrder response = ordersSdk.orders.updateOrder(\"ord-001\", updateOrderRequest);\n\t\t\t\n\t\tSystem.out.println(response);\n    }\n}\n",
+      "patch": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.models.Order;\nimport com.orderssdk.models.PatchOrderRequest;\nimport com.orderssdk.models.PatchOrderRequestStatus;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tPatchOrderRequest patchOrderRequest = PatchOrderRequest.builder()\n\t\t\t.customerId(\"usr-003\")\n\t\t\t.total(149.99D)\n\t\t\t.status(PatchOrderRequestStatus.PENDING)\n\t\t\t.currency(\"EUR\")\n\t\t\t.build();\n\n\t\tOrder response = ordersSdk.orders.patchOrder(\"ord-001\", patchOrderRequest);\n\t\t\t\n\t\tSystem.out.println(response);\n    }\n}\n",
+      "delete": "import com.orderssdk.OrdersSdk;\n\npublic class Main {\n    public static void main(String[] args) {\n\t\tOrdersSdk ordersSdk = new OrdersSdk();\n\n\t\tordersSdk.orders.deleteOrder(\"ord-001\");\n    }\n}\n"
+    }
+  },
+  "methodResponses": {
+    "/health": {
+      "get": "System.out.println(response);"
+    },
+    "/openapi.json": {
+      "get": "System.out.println(response);"
+    },
+    "/orders": {
+      "get": "System.out.println(response);",
+      "post": "System.out.println(response);"
+    },
+    "/orders/{id}": {
+      "get": "System.out.println(response);",
+      "put": "System.out.println(response);",
+      "patch": "System.out.println(response);"
+    }
+  },
+  "example": "import com.orderssdk.OrdersSdk;\nimport com.orderssdk.exceptions.ApiError;\nimport com.orderssdk.models.HealthResponse;\n  \npublic class Main {\n  public static void main(String[] args) {\n    OrdersSdk ordersSdk = new OrdersSdk();\n\n\n    try {\n      HealthResponse response = ordersSdk.system_.getHealth();\n        \n      System.out.println(response);\n    } catch (ApiError e) {\n      e.printStackTrace();\n    }\n\n    System.exit(0);\n  }\n}\n"
+}

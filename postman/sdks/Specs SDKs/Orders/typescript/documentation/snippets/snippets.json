@@ -1,0 +1,38 @@
+{
+  "endpoints": {
+    "/health": {
+      "get": "import { OrdersSdk } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const data = await ordersSdk.system.getHealth();\n\n  console.log(data);\n})();\n"
+    },
+    "/openapi.json": {
+      "get": "import { OrdersSdk } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const data = await ordersSdk.system.getOpenApi();\n\n  console.log(data);\n})();\n"
+    },
+    "/orders": {
+      "get": "import { OrdersSdk } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const data = await ordersSdk.orders.listOrders();\n\n  console.log(data);\n})();\n",
+      "post": "import { CreateOrderRequest, OrdersSdk } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const createOrderRequestStatus = \"pending\"\n  \n  const createOrderRequest: CreateOrderRequest = {\t\n    customerId: \"usr-002\",\n    total: 99.5,\n    status: createOrderRequestStatus,\n    currency: \"USD\"\n  };\n\n  const data = await ordersSdk.orders.createOrder(createOrderRequest);\n\n  console.log(data);\n})();\n"
+    },
+    "/orders/{id}": {
+      "get": "import { OrdersSdk } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const data = await ordersSdk.orders.getOrder(\"ord-001\");\n\n  console.log(data);\n})();\n",
+      "put": "import { OrdersSdk, UpdateOrderRequest } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const updateOrderRequestStatus = \"pending\"\n  \n  const updateOrderRequest: UpdateOrderRequest = {\t\n    customerId: \"usr-003\",\n    total: 149.99,\n    status: updateOrderRequestStatus,\n    currency: \"EUR\"\n  };\n\n  const data = await ordersSdk.orders.updateOrder(\n  \"ord-001\",\n  updateOrderRequest\n);\n\n  console.log(data);\n})();\n",
+      "patch": "import { OrdersSdk, PatchOrderRequest } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const patchOrderRequestStatus = \"pending\"\n  \n  const patchOrderRequest: PatchOrderRequest = {\t\n    customerId: \"usr-003\",\n    total: 149.99,\n    status: patchOrderRequestStatus,\n    currency: \"EUR\"\n  };\n\n  const data = await ordersSdk.orders.patchOrder(\n  \"ord-001\",\n  patchOrderRequest\n);\n\n  console.log(data);\n})();\n",
+      "delete": "import { OrdersSdk } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const data = await ordersSdk.orders.deleteOrder(\"ord-001\");\n\n  console.log(data);\n})();\n"
+    }
+  },
+  "methodResponses": {
+    "/health": {
+      "get": "{ 'status': 'ok', 'service': 'test-value', 'version': 'test-value' }"
+    },
+    "/openapi.json": {
+      "get": "{ 'openapi': 'test-value', 'info': { 'title': 'test-value', 'version': 'test-value', 'description': 'test-value' }, 'servers': [{ 'url': 'test-value', 'description': 'test-value' }], 'paths': {  }, 'components': {  } }"
+    },
+    "/orders": {
+      "get": "{ 'data': [{ 'id': 'test-value', 'customerId': 'test-value', 'status': 'pending', 'total': 0, 'currency': 'test-value' }], 'count': 0 }",
+      "post": "{ 'id': 'test-value', 'customerId': 'test-value', 'status': 'pending', 'total': 0, 'currency': 'test-value' }"
+    },
+    "/orders/{id}": {
+      "get": "{ 'id': 'test-value', 'customerId': 'test-value', 'status': 'pending', 'total': 0, 'currency': 'test-value' }",
+      "put": "{ 'id': 'test-value', 'customerId': 'test-value', 'status': 'pending', 'total': 0, 'currency': 'test-value' }",
+      "patch": "{ 'id': 'test-value', 'customerId': 'test-value', 'status': 'pending', 'total': 0, 'currency': 'test-value' }"
+    }
+  },
+  "example": "import { OrdersSdk } from 'orders-sdk';\n\n(async () => {\n  const ordersSdk = new OrdersSdk({});\n\n  const data = await ordersSdk.system.getHealth();\n\n  console.log(data);\n})();\n"
+}

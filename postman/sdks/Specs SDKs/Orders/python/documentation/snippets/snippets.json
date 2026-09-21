@@ -1,0 +1,38 @@
+{
+  "endpoints": {
+    "/health": {
+      "get": "from orders_sdk import OrdersSdk\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nresult = sdk.system.get_health()\n\nprint(result)\n"
+    },
+    "/openapi.json": {
+      "get": "from orders_sdk import OrdersSdk\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nresult = sdk.system.get_open_api()\n\nprint(result)\n"
+    },
+    "/orders": {
+      "get": "from orders_sdk import OrdersSdk\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nresult = sdk.orders.list_orders()\n\nprint(result)\n",
+      "post": "from orders_sdk import OrdersSdk\nfrom orders_sdk.models import CreateOrderRequest\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nrequest_body = CreateOrderRequest(\n    customer_id=\"usr-002\",\n    total=99.5,\n    status=\"pending\",\n    currency=\"USD\"\n)\n\nresult = sdk.orders.create_order(request_body=request_body)\n\nprint(result)\n"
+    },
+    "/orders/{id}": {
+      "get": "from orders_sdk import OrdersSdk\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nresult = sdk.orders.get_order(id_=\"ord-001\")\n\nprint(result)\n",
+      "put": "from orders_sdk import OrdersSdk\nfrom orders_sdk.models import UpdateOrderRequest\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nrequest_body = UpdateOrderRequest(\n    customer_id=\"usr-003\",\n    total=149.99,\n    status=\"pending\",\n    currency=\"EUR\"\n)\n\nresult = sdk.orders.update_order(\n    request_body=request_body,\n    id_=\"ord-001\"\n)\n\nprint(result)\n",
+      "patch": "from orders_sdk import OrdersSdk\nfrom orders_sdk.models import PatchOrderRequest\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nrequest_body = PatchOrderRequest(\n    customer_id=\"usr-003\",\n    total=149.99,\n    status=\"pending\",\n    currency=\"EUR\"\n)\n\nresult = sdk.orders.patch_order(\n    request_body=request_body,\n    id_=\"ord-001\"\n)\n\nprint(result)\n",
+      "delete": "from orders_sdk import OrdersSdk\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nresult = sdk.orders.delete_order(id_=\"ord-001\")\n\nprint(result)\n"
+    }
+  },
+  "methodResponses": {
+    "/health": {
+      "get": "print(result)"
+    },
+    "/openapi.json": {
+      "get": "print(result)"
+    },
+    "/orders": {
+      "get": "print(result)",
+      "post": "print(result)"
+    },
+    "/orders/{id}": {
+      "get": "print(result)",
+      "put": "print(result)",
+      "patch": "print(result)"
+    }
+  },
+  "example": "from orders_sdk import OrdersSdk\n\nsdk = OrdersSdk(\n    timeout=10\n)\n\nresult = sdk.system.get_health()\n\nprint(result)\n"
+}

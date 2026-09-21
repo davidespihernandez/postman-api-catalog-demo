@@ -1,0 +1,21 @@
+{
+  "endpoints": {
+    "/health": {
+      "get": "orders system get-health\n"
+    },
+    "/openapi.json": {
+      "get": "orders system get-open-api\n"
+    },
+    "/orders": {
+      "get": "orders orders list-orders\n",
+      "post": "orders orders create-order --body '{\"customerId\":\"usr-002\",\"total\":99.5,\"status\":\"<create_order_request_status>\",\"currency\":\"USD\"}'\n"
+    },
+    "/orders/{id}": {
+      "get": "orders orders get-order --id \"ord-001\"\n",
+      "put": "orders orders update-order --id \"ord-001\" --body '{\"customerId\":\"usr-003\",\"total\":149.99,\"status\":\"<update_order_request_status>\",\"currency\":\"EUR\"}'\n",
+      "patch": "orders orders patch-order --id \"ord-001\" --body '{\"customerId\":\"usr-003\",\"total\":149.99,\"status\":\"<patch_order_request_status>\",\"currency\":\"EUR\"}'\n",
+      "delete": "orders orders delete-order --id \"ord-001\"\n"
+    }
+  },
+  "example": "orders system get-health\n"
+}

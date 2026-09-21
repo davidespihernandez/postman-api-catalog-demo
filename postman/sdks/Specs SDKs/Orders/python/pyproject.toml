@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orders_sdk"
+version = "1.0.0"
+description = """Demo orders service for the Postman API Catalog walkthrough.\n\nOptional query parameters on all endpoints except /openapi.json:\n- delay or wait: milliseconds to wait before responding (max 30000)\n- status or error: HTTP status code to return (e.g. 500); error=true also returns 500"""
+readme = "PyPI_README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "requests>=2.31.0",
+    "pydantic>=2.0.0,<3.0.0"
+]
