@@ -6,8 +6,8 @@ async function seedIfEmpty() {
   const size = await pm.state.size();
   if (size === 0) {
     const seed = [
-      { id: 'ord-001', customerId: 'usr-001', status: 'shipped',    total: 49.99,  currency: 'USD' },
-      { id: 'ord-002', customerId: 'usr-002', status: 'pending',    total: 99.50,  currency: 'USD' },
+      { id: 'ord-001', customerId: 'usr-001', status: 'shipped', total: 49.99, currency: 'USD' },
+      { id: 'ord-002', customerId: 'usr-002', status: 'pending', total: 99.50, currency: 'USD' },
       { id: 'ord-003', customerId: 'usr-003', status: 'processing', total: 149.99, currency: 'EUR' },
     ];
     for (const order of seed) {
@@ -81,11 +81,11 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     const newOrder = {
-      id:         generateId(),
+      id: generateId(),
       customerId: body.customerId,
-      status:     body.status || 'pending',
-      total:      body.total,
-      currency:   body.currency || 'USD',
+      status: body.status || 'pending',
+      total: body.total,
+      currency: body.currency || 'USD',
     };
     await pm.state.set('orders:' + newOrder.id, newOrder);
     const ids = (await pm.state.get('orders:ids')) || [];
@@ -123,9 +123,9 @@ const server = http.createServer(async (req, res) => {
       const updated = {
         id,
         customerId: body.customerId,
-        status:     body.status,
-        total:      body.total,
-        currency:   body.currency || existing.currency,
+        status: body.status,
+        total: body.total,
+        currency: body.currency || existing.currency,
       };
       await pm.state.set('orders:' + id, updated);
       json(res, 200, updated);
