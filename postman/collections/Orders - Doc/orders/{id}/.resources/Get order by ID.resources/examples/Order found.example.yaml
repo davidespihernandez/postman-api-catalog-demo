@@ -21,7 +21,7 @@ response:
     type: json
     content: |-
       {
-        "id": "ord-001",
+        "id": "{{$randomUUID}}",
         "customerId": "usr-001",
         "status": "shipped",
         "total": 49.99,
