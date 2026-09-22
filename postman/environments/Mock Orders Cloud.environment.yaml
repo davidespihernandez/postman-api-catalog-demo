@@ -1,0 +1,5 @@
+name: Mock Orders Cloud
+values:
+  - key: baseUrl
+    value: 'https://d854aaa6-916c-4366-b5f0-cae9ea3e893e.mock.pstmn.io'
+color: 0

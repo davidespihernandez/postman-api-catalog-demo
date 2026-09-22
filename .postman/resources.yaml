@@ -25,15 +25,15 @@ cloudResources:
     ../postman/collections/Users - QA: 53522859-9399b6e0-663f-40a7-92eb-99d28a23b6b1
     ../postman/collections/Orders - QA: 53522859-54ec8184-2939-4cef-8528-56e1936bbae5
   environments:
-    ../postman/environments/Mock Payments.environment.yaml: 53522859-66abb0b7-1278-4922-bcc7-6ff9f8a5db43
     ../postman/environments/Production Users AWS.environment.yaml: 53522859-8f60449d-c57e-46b0-9241-f4b83484c73b
     ../postman/environments/Production Orders AWS.environment.yaml: 53522859-9577f7c6-d8c7-4375-bf19-85b17e418c33
     ../postman/environments/Production Payments AWS.environment.yaml: 53522859-9b275776-9810-4887-a66f-a61d7f33f215
     ../postman/environments/Production Notifications AWS.environment.yaml: 53522859-ab2cdc69-d153-4916-8a41-c2d2b09edaa6
     ../postman/environments/Production Refund Webhook.environment.yaml: 53522859-af505193-5819-4f1f-82b7-94641265d241
-    ../postman/environments/Mock Users.environment.yaml: 53522859-b7d1ec90-5380-4bc7-8fcc-81aa67db2999
     ../postman/environments/Notifications MQTT.environment.yaml: 53522859-c0f019cf-045d-48e6-8622-4fa4be3c6311
-    ../postman/environments/Mock Orders.environment.yaml: 53522859-cbef87b8-bd00-494c-9bd7-e128428b4d26
+    ../postman/environments/Mock Orders Cloud.environment.yaml: 53522859-cbef87b8-bd00-494c-9bd7-e128428b4d26
+    ../postman/environments/Mock Payments Cloud.environment.yaml: 53522859-66abb0b7-1278-4922-bcc7-6ff9f8a5db43
+    ../postman/environments/Mock Users Cloud.environment.yaml: 53522859-b7d1ec90-5380-4bc7-8fcc-81aa67db2999
   specs:
     ../index.yaml: 938c2265-93e0-4b10-b1c7-a56562cdde6b
     ../payment-refund-webhook.yaml: e0d2234b-6fd1-44e9-a471-ddf280333793
