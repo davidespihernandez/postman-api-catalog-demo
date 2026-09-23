@@ -1,0 +1,23 @@
+type: dataset
+name: "Order list for testing GET endpoint"
+description: Dataset to be used for testing the GET endpoint
+id: 241a0da1-6616-426b-a259-46a3622104aa
+data_dir: .resources
+sources:
+  - from: embedded_datasource
+    datasource:
+      name: source_orders_test
+      id: 31be3b41-ac82-4c17-8b57-2d0c8b20afd2
+      dsKey: source_orders_test
+      format: csv
+      source_type: static
+      location:
+        type: local_filesystem
+        value: .resources/orders_test.csv
+views:
+  - from: embedded_view
+    view:
+      name: 'source_orders_test_default_view'
+      id: '471a56b4-eb0f-4f66-b701-a17492c4375e'
+      query: |-
+        SELECT * FROM source_orders_test

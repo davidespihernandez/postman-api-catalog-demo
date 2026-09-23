@@ -40,8 +40,7 @@ cloudResources:
     ../users.yaml: 2800392b-e6be-412d-a3b3-61195f715baa
     ../payments.yaml: f020c429-d756-4379-b951-17634c10c5b9
     ../orders.yaml: fff8186c-d957-4a94-b325-e17b033f74e1
-  datasets:
-    ../postman/datasets/Orders get detail test/Orders get detail test.dataset.yaml: 9ac3844b-d233-497e-b2b3-2f0bc0f6f0e2
+  datasets: {}
   documents:
     ../postman/documents/API documentation.md: 7b0ff53e-be54-444f-b7b9-50275b264f21
 resourceNameMappings:
