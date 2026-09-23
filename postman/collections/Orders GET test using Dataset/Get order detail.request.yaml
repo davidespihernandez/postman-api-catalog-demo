@@ -6,9 +6,10 @@ scripts:
     code: |-
       const orderId = pm.iterationData.get("order_id");
       const expected = pm.iterationData.get("expected");
-      const responseCode = pm.response.code
+      // Compare as strings so it works whether the data source gives the code as
+      // a string (cloud dataset) or a number (CSV via -d, which coerces "200" -> 200).
       pm.test("Expected response code is returned", function () {
-          pm.expect(responseCode.toString()).to.eql(expected);
+          pm.expect(String(pm.response.code)).to.eql(String(expected));
       });
     language: text/javascript
 order: 1000
