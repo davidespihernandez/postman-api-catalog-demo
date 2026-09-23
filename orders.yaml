@@ -79,7 +79,7 @@
         "summary": "List orders",
         "responses": {
           "200": {
-            "description": "Paginated-style order lis. 10 items per row.",
+            "description": "Paginated-style order list changed.",
             "content": {
               "application/json": {
                 "schema": {
