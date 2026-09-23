@@ -57,8 +57,9 @@ jobs:
             echo "== lint $f =="
             postman spec lint "$f"
           done
-      - name: QA collection (against THIS commit's Orders code)
+      - name: QA + data-driven QA (against THIS commit's Orders code)
         run: |
+          set +e
           # Run the pushed Orders server locally so QA validates the new code,
           # not the currently-deployed API. A breaking change fails here and
           # blocks the deploy (the release job needs this job to pass).
@@ -70,6 +71,15 @@ jobs:
           # under cascade failures (a broken Create nulls the id used by later tests).
           postman collection run "${{ env.ORDERS_QA_COLLECTION }}" --env-var "baseUrl=http://127.0.0.1:8787" --bail
           rc=$?
+          # Data-driven GET checks from the committed dataset (view over the CSV; rebuilds
+          # data.db from it). Local collection path + Local Orders env resolve locally — no login/cloud.
+          if [ $rc -eq 0 ]; then
+            postman collection run "postman/collections/Orders GET test using Dataset" \
+              --iteration-data-dataset "postman/datasets/Order-list-for-testing-GET-endpoint/Order-list-for-testing-GET-endpoint.dataset.yaml" \
+              --iteration-data-view "source_orders_test_default_view" \
+              -e "postman/environments/Local Orders.environment.yaml"
+            rc=$?
+          fi
           kill $WPID 2>/dev/null || true
           exit $rc
 
@@ -173,11 +183,16 @@ jobs:
             sleep 10
           done
           aws ssm get-command-invocation --command-id "$CID" --instance-id "$AWS_INSTANCE_ID" --query StandardOutputContent --output text | tail -20
-      - name: Post-deploy smoke (QA against live AWS)
+      - name: Post-deploy smoke (QA + dataset, against live AWS)
         run: |
-          # confirm the deployed AWS API passes the same QA suite
+          # confirm the deployed AWS API passes the same QA suite + data-driven GET checks
           for i in $(seq 1 20); do curl -sf "https://$AWS_HOST/health" >/dev/null 2>&1 && break; sleep 4; done
           postman collection run "${{ env.ORDERS_QA_COLLECTION }}" -e "${{ env.AWS_ORDERS_ENV }}" --bail
+          # Same dataset, now against the deployed AWS build (Production Orders AWS env).
+          postman collection run "postman/collections/Orders GET test using Dataset" \
+            --iteration-data-dataset "postman/datasets/Order-list-for-testing-GET-endpoint/Order-list-for-testing-GET-endpoint.dataset.yaml" \
+            --iteration-data-view "source_orders_test_default_view" \
+            -e "postman/environments/Production Orders AWS.environment.yaml"
 
   docs-check:
     name: Docs check (fern check)
