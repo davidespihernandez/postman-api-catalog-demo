@@ -3,3 +3,6 @@
 
 # Temp files for dataset creation
 .temp/
+
+# DuckDB engine file (generated from the CSV; the `-d <csv>` run doesn't need it)
+**/.resources/data.db
