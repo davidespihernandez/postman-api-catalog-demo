@@ -3,7 +3,6 @@ workspace:
 
 localResources:
   specs:
-    - ../frontend/package.json
     - ../index.yaml
     - ../payment-refund-webhook.yaml
     - ../users.yaml
