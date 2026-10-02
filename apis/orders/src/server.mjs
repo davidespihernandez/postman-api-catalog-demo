@@ -37,7 +37,7 @@ app.post("/orders", (req, res) => {
     id: nextId(),
     customerId: b.customerId,
     status: b.status ?? "pending",
-    totalAmount: b.total,
+    total: b.total,
     currency: b.currency ?? "USD",
   };
   orders.push(order);
