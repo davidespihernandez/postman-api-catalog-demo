@@ -1,0 +1,157 @@
+# Agent-Readiness ruleset (Spectral) for Postman API Governance
+# ---------------------------------------------------------------
+# Encodes the "agent-ready API" best practices (discover / understand / self-heal)
+# as deterministic OpenAPI governance rules. Add this as a CUSTOM RULESET in
+# Postman (Team Settings -> API Governance -> Configurable Rules) and apply it to
+# your workspace. `postman spec lint` in CI will then enforce it automatically.
+#
+# Severity maps to the agent-readiness weighting:
+#   error = Critical (an agent cannot function without it)
+#   warn  = High     (an agent will frequently guess or fail)
+#   info  = Medium/Low (polish that improves reliability)
+#
+# Uses Spectral CORE functions only (truthy, pattern). No extends/aliases/overrides.
+rules:
+
+  # ---- Pillar: Metadata -------------------------------------------------
+  agent-operation-operationid:
+    description: Every operation must have an operationId so an agent can name and call it.
+    message: "Operation {{path}} is missing an operationId."
+    severity: error
+    formats: [oas3]
+    given: $.paths[*][get,post,put,delete,patch,head,options,trace]
+    then:
+      field: operationId
+      function: truthy
+
+  agent-operation-summary:
+    description: Every operation should have a summary so an agent can select the right endpoint.
+    message: "Operation {{path}} is missing a summary."
+    severity: warn
+    formats: [oas3]
+    given: $.paths[*][get,post,put,delete,patch,head,options,trace]
+    then:
+      field: summary
+      function: truthy
+
+  agent-operation-tags:
+    description: Every operation should be tagged so an agent can group and discover capabilities.
+    message: "Operation {{path}} has no tags."
+    severity: warn
+    formats: [oas3]
+    given: $.paths[*][get,post,put,delete,patch,head,options,trace]
+    then:
+      field: tags
+      function: truthy
+
+  agent-info-description:
+    description: The API should describe what it does so an agent understands its purpose.
+    message: "info.description is missing."
+    severity: info
+    formats: [oas3]
+    given: $.info
+    then:
+      field: description
+      function: truthy
+
+  # ---- Pillar: Errors ---------------------------------------------------
+  agent-error-response-has-content:
+    description: 4xx/5xx responses must define a body so an agent can read structured errors and self-heal.
+    message: "Error response {{property}} at {{path}} has no content/body schema."
+    severity: error
+    formats: [oas3]
+    given: $.paths[*][get,post,put,delete,patch,head,options,trace].responses[?(@property.match(/^[45]\d\d$/))]
+    then:
+      field: content
+      function: truthy
+
+  agent-error-response-has-schema:
+    description: Error bodies must be schema-typed (code + message) rather than free-form text.
+    message: "Error response content at {{path}} has no schema."
+    severity: warn
+    formats: [oas3]
+    given: $.paths[*][get,post,put,delete,patch,head,options,trace].responses[?(@property.match(/^[45]\d\d$/))].content[*]
+    then:
+      field: schema
+      function: truthy
+
+  # ---- Pillar: Introspection -------------------------------------------
+  agent-parameter-has-description:
+    description: Parameters must be described so an agent knows what to pass without guessing.
+    message: "A parameter at {{path}} has no description."
+    severity: warn
+    formats: [oas3]
+    given:
+      - $.paths[*][get,post,put,delete,patch,head,options,trace].parameters[*]
+      - $.components.parameters[*]
+    then:
+      field: description
+      function: truthy
+
+  agent-parameter-has-schema:
+    description: Parameters must declare a schema so an agent knows the type and constraints.
+    message: "A parameter at {{path}} has no schema."
+    severity: warn
+    formats: [oas3]
+    given:
+      - $.paths[*][get,post,put,delete,patch,head,options,trace].parameters[*]
+      - $.components.parameters[*]
+    then:
+      field: schema
+      function: truthy
+
+  # ---- Pillar: Predictability ------------------------------------------
+  agent-success-response-has-content:
+    description: 200/201 responses must define a body schema so an agent can predict the shape.
+    message: "Success response {{property}} at {{path}} has no content schema."
+    severity: warn
+    formats: [oas3]
+    given: $.paths[*][get,post,put,delete,patch,head,options,trace].responses[?(@property.match(/^20[01]$/))]
+    then:
+      field: content
+      function: truthy
+
+  # ---- Pillar: Naming ---------------------------------------------------
+  agent-path-no-trailing-slash:
+    description: Paths must not end with a trailing slash (predictable, canonical URLs).
+    message: "Path {{property}} must not end with a trailing slash."
+    severity: warn
+    formats: [oas3]
+    given: $.paths[*]~
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "./$"
+
+  agent-path-lowercase:
+    description: Paths should be lowercase for consistent, predictable addressing.
+    message: "Path {{property}} should be lowercase."
+    severity: warn
+    formats: [oas3]
+    given: $.paths[*]~
+    then:
+      function: pattern
+      functionOptions:
+        notMatch: "[A-Z]"
+
+  # ---- Pillar: Documentation -------------------------------------------
+  agent-info-contact:
+    description: Provide contact info so a maintainer is discoverable.
+    message: "info.contact is missing."
+    severity: info
+    formats: [oas3]
+    given: $.info
+    then:
+      field: contact
+      function: truthy
+
+  # ---- Pillar: Discoverability -----------------------------------------
+  agent-servers-defined:
+    description: Declare server URLs so an agent knows where to send requests.
+    message: "No servers are defined for this API."
+    severity: warn
+    formats: [oas3]
+    given: $
+    then:
+      field: servers
+      function: truthy

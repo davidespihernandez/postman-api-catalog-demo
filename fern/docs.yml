@@ -25,6 +25,8 @@ navigation:
         contents:
           - page: Introduction
             path: ./pages/introduction.mdx
+          - page: "Quickstart: your first order"
+            path: ./pages/quickstart.mdx
           - page: Payment refund webhook
             path: ./pages/webhooks.mdx
           - page: Async notifications (MQTT)

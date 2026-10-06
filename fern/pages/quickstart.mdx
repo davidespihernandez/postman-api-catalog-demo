@@ -1,0 +1,54 @@
+---
+title: "Quickstart: your first order"
+subtitle: Create an order, read it back, and see how authored guides pull live examples from the spec.
+---
+
+This guide walks you through creating your first order against the **Orders API**. The request and
+response snippets below are generated **directly from the OpenAPI spec** — so they stay accurate as
+the API evolves, with no copy-paste drift.
+
+<Note>
+All examples target the live demo server: `https://18-157-170-15.nip.io`. No authentication is
+required for this demo environment.
+</Note>
+
+<Steps>
+  <Step title="Pick your base URL">
+    Every endpoint in this portal is relative to the server URL above. You can call it with `curl`,
+    any SDK, or straight from the **Try it** button on each snippet.
+  </Step>
+
+  <Step title="Create an order">
+    Send a `POST /orders` with the customer and total. Only `customerId` and `total` are required;
+    `status` and `currency` are optional.
+
+    <EndpointRequestSnippet endpoint="POST /orders" />
+  </Step>
+
+  <Step title="Inspect the response">
+    A successful call returns the created order, including its server-assigned `id`. Copy that `id`
+    for the next step.
+
+    <EndpointResponseSnippet endpoint="POST /orders" />
+  </Step>
+
+  <Step title="Read the order back">
+    Fetch the order you just created with `GET /orders/{id}`.
+
+    <EndpointRequestSnippet endpoint="GET /orders/{id}" />
+  </Step>
+</Steps>
+
+## What just happened
+
+You mixed **two kinds of content**: this hand-written walkthrough (an MDX guide) and **live request /
+response snippets sourced from `orders.yaml`**. Update the spec and these snippets update with it.
+
+<CardGroup cols={2}>
+  <Card title="Full Orders API reference" icon="fa-solid fa-code" href="/api/orders">
+    Browse every endpoint, schema, and status code — auto-generated from the spec.
+  </Card>
+  <Card title="AI agents & MCP" icon="fa-solid fa-robot" href="/guides/ai-agents">
+    Query these same APIs from an AI agent via the built-in MCP server.
+  </Card>
+</CardGroup>
