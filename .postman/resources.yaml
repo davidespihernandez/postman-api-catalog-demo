@@ -7,9 +7,6 @@ localResources:
     - ../users.yaml
     - ../payments.yaml
     - ../orders.yaml
-    - ../apis/orders/openapi.json
-    - ../apis/payments/openapi.json
-    - ../apis/users/openapi.json
 cloudResources:
   collections:
     ../postman/collections/Orders GET performance test: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855
@@ -48,6 +45,3 @@ resourceNameMappings:
     - ../users.yaml: Users
     - ../payments.yaml: Payments
     - ../orders.yaml: Orders
-    - ../apis/orders/openapi.json: openapi.json
-    - ../apis/payments/openapi.json: openapi.json
-    - ../apis/users/openapi.json: openapi.json
