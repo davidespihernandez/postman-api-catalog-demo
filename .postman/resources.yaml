@@ -1,5 +1,6 @@
 workspace:
   id: 37875132-fcb4-4a68-ae65-2913c91fdd60
+
 localResources:
   specs:
     - ../index.yaml
@@ -7,6 +8,9 @@ localResources:
     - ../users.yaml
     - ../payments.yaml
     - ../orders.yaml
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
 cloudResources:
   collections:
     ../postman/collections/Orders GET performance test: 53522859-252dae41-d1c6-4dcc-9907-0964eb173855
@@ -38,10 +42,3 @@ cloudResources:
   datasets: {}
   documents:
     ../postman/documents/API documentation.md: 7b0ff53e-be54-444f-b7b9-50275b264f21
-resourceNameMappings:
-  specs:
-    - ../index.yaml: Notifications
-    - ../payment-refund-webhook.yaml: payment-refund-webhook.yaml
-    - ../users.yaml: Users
-    - ../payments.yaml: Payments
-    - ../orders.yaml: Orders
