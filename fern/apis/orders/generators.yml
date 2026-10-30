@@ -2,3 +2,18 @@
 api:
   specs:
     - openapi: ../../../orders.yaml
+groups:
+  ts-sdk:
+    generators:
+      - name: fern-typescript-sdk
+        version: 3.108.4
+        output:
+          location: local-file-system
+          path: ../../../sdks/orders/typescript
+  python-sdk:
+    generators:
+      - name: fern-python-sdk
+        version: 5.41.12
+        output:
+          location: local-file-system
+          path: ../../../sdks/orders/python

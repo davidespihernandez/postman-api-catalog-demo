@@ -27,6 +27,8 @@ navigation:
             path: ./pages/introduction.mdx
           - page: "Quickstart: your first order"
             path: ./pages/quickstart.mdx
+          - page: "SDKs for the Orders API"
+            path: ./pages/sdks.mdx
           - page: Payment refund webhook
             path: ./pages/webhooks.mdx
           - page: Async notifications (MQTT)
