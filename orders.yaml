@@ -41,7 +41,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       }
@@ -65,7 +65,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       }
@@ -101,7 +101,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       },
@@ -156,7 +156,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       }
@@ -212,7 +212,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       },
@@ -277,7 +277,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       },
@@ -329,7 +329,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       },
@@ -354,7 +354,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "https://components.pstmn.io/david-demo-team-1/error-responses/1.0.0#/components/responses/ServerErrorResponse"
           }
         }
       }
@@ -635,46 +635,6 @@
           "service": {
             "type": "string",
             "example": "orders-api"
-          }
-        }
-      },
-      "ServerErrorResponse": {
-        "type": "object",
-        "required": [
-          "error"
-        ],
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "Simulated response for API Catalog demo"
-          },
-          "status": {
-            "type": "integer",
-            "example": 500
-          },
-          "simulated": {
-            "type": "boolean",
-            "example": true
-          },
-          "service": {
-            "type": "string",
-            "example": "orders-api"
-          },
-          "delayMs": {
-            "type": "integer",
-            "example": 2000
-          }
-        }
-      }
-    },
-    "responses": {
-      "InternalServerError": {
-        "description": "Internal server error. Simulatable with ?status=500 on any endpoint except /openapi.json.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ServerErrorResponse"
-            }
           }
         }
       }
