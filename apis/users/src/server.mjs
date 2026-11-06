@@ -7,7 +7,8 @@ import { cors, demoHooks, openApiWithServer } from "../../shared/app.mjs";
 const SERVICE = "users-api";
 const VERSION = "1.0.0";
 const PORT = Number(process.env.PORT) || 8789;
-const openapi = JSON.parse(await readFile(new URL("../openapi.json", import.meta.url)));
+// Single source of truth: the top-level users.yaml spec (JSON content).
+const openapi = JSON.parse(await readFile(new URL("../../../users.yaml", import.meta.url)));
 
 let users = [
   { id: "usr-001", name: "Alice Chen", email: "alice@example.com", role: "customer" },

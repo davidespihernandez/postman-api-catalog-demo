@@ -8,7 +8,8 @@ const SERVICE = "payments-api";
 const VERSION = "1.0.0";
 const PORT = Number(process.env.PORT) || 8788;
 const REFUND_WEBHOOK_URL = process.env.REFUND_WEBHOOK_URL || "";
-const openapi = JSON.parse(await readFile(new URL("../openapi.json", import.meta.url)));
+// Single source of truth: the top-level payments.yaml spec (JSON content).
+const openapi = JSON.parse(await readFile(new URL("../../../payments.yaml", import.meta.url)));
 
 let payments = [
   { id: "pay-001", orderId: "ord-001", amount: 49.99, status: "completed", currency: "USD" },

@@ -7,7 +7,8 @@ import { cors, demoHooks, openApiWithServer } from "../../shared/app.mjs";
 const SERVICE = "orders-api";
 const VERSION = "1.0.0";
 const PORT = Number(process.env.PORT) || 8787;
-const openapi = JSON.parse(await readFile(new URL("../openapi.json", import.meta.url)));
+// Single source of truth: the top-level orders.yaml spec (JSON content).
+const openapi = JSON.parse(await readFile(new URL("../../../orders.yaml", import.meta.url)));
 
 let orders = [
   { id: "ord-001", customerId: "usr-001", status: "shipped", total: 49.99, currency: "USD" },
