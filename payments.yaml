@@ -48,7 +48,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       }
@@ -72,7 +72,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       }
@@ -96,7 +96,7 @@
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       },
@@ -138,13 +138,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       }
@@ -184,13 +184,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       },
@@ -226,7 +226,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -236,13 +236,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       },
@@ -278,13 +278,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       },
@@ -303,13 +303,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       }
@@ -352,7 +352,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
@@ -362,13 +362,13 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "$ref": "./components/common.yaml#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
           "500": {
-            "$ref": "#/components/responses/InternalServerError"
+            "$ref": "./components/common.yaml#/components/responses/InternalServerError"
           }
         }
       }
@@ -574,61 +574,6 @@
           "reason": {
             "type": "string",
             "example": "customer_request"
-          }
-        }
-      },
-      "ErrorResponse": {
-        "type": "object",
-        "required": [
-          "error"
-        ],
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "Payment not found"
-          },
-          "service": {
-            "type": "string",
-            "example": "payments-api"
-          }
-        }
-      },
-      "ServerErrorResponse": {
-        "type": "object",
-        "required": [
-          "error"
-        ],
-        "properties": {
-          "error": {
-            "type": "string",
-            "example": "Simulated response for API Catalog demo"
-          },
-          "status": {
-            "type": "integer",
-            "example": 500
-          },
-          "simulated": {
-            "type": "boolean",
-            "example": true
-          },
-          "service": {
-            "type": "string",
-            "example": "payments-api"
-          },
-          "delayMs": {
-            "type": "integer"
-          }
-        }
-      }
-    },
-    "responses": {
-      "InternalServerError": {
-        "description": "Internal server error. Simulatable with ?status=500 on any endpoint except /openapi.json.",
-        "content": {
-          "application/json": {
-            "schema": {
-              "$ref": "#/components/schemas/ServerErrorResponse"
-            }
           }
         }
       }
