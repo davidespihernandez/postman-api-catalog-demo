@@ -29,6 +29,10 @@ cloudResources:
     ../postman/environments/Mock Orders Cloud.environment.yaml: 53522859-cbef87b8-bd00-494c-9bd7-e128428b4d26
     ../postman/environments/Mock Payments Cloud.environment.yaml: 53522859-66abb0b7-1278-4922-bcc7-6ff9f8a5db43
     ../postman/environments/Mock Users Cloud.environment.yaml: 53522859-b7d1ec90-5380-4bc7-8fcc-81aa67db2999
+    ../postman/environments/Local Orders.environment.yaml: 53522859-dee5b0b9-2993-4b45-b0dc-8f2bd3f691a6
+    ../postman/environments/Local Payments.environment.yaml: 53522859-51287dd0-19bb-4d4c-9c60-f0a865e769dd
+    ../postman/environments/Local Users.environment.yaml: 53522859-80b9132d-2921-4d9f-b05a-f79fe3e1f665
+    ../postman/environments/Mock Orders Local.environment.yaml: 53522859-a54b8bc3-0a8e-475d-9400-9ce1bcd357be
   specs:
     ../index.yaml: 938c2265-93e0-4b10-b1c7-a56562cdde6b
     ../payment-refund-webhook.yaml: e0d2234b-6fd1-44e9-a471-ddf280333793
@@ -38,3 +42,5 @@ cloudResources:
   datasets: {}
   documents:
     ../postman/documents/API documentation.md: 7b0ff53e-be54-444f-b7b9-50275b264f21
+  globals:
+    ../postman/globals/workspace.globals.yaml: a67803c3-ab87-489d-82ae-704c8a19ebdc
