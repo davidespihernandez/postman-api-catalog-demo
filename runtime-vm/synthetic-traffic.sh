@@ -29,7 +29,10 @@ for _ in 1 2 3; do
 done
 hit "$BASE/health"          GET
 hit "$BASE/orders/ord-001"  GET
-hit "$BASE/users"           POST -H 'content-type: application/json' -d '{"name":"Synthetic User","email":"syn@example.com"}'
+# Create a user and delete it right away, so /users does not grow forever (it used to reach 15 MB).
+uid=$(curl -s -X POST "$BASE/users" -H 'content-type: application/json' -d '{"name":"Synthetic User","email":"syn@example.com"}' | sed -n 's/.*"id" *: *"\([^"]*\)".*/\1/p' | head -1)
+echo "POST /users -> ${uid:-no id}"
+[ -n "$uid" ] && hit "$BASE/users/$uid" DELETE
 
 # A little latency (feeds p95 / latency-regression) ------------------------
 hit "$BASE/orders?delay=250"    GET
