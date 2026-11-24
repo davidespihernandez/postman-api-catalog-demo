@@ -22,14 +22,14 @@ scripts:
       pm.test('Field exists: id', function () { pm.expect(body).to.have.property('id'); });
       pm.test('Field exists: customerId', function () { pm.expect(body).to.have.property('customerId'); });
       pm.test('Field exists: status', function () { pm.expect(body).to.have.property('status'); });
-      pm.test('Field exists: total', function () { pm.expect(body).to.have.property('total'); });
+      pm.test('Field exists: totalAmount', function () { pm.expect(body).to.have.property('totalAmount'); });
       pm.test('Field exists: currency', function () { pm.expect(body).to.have.property('currency'); });
       pm.test('Response has exactly 5 fields', function () { pm.expect(Object.keys(body)).to.have.lengthOf(5); });
 
       // Value assertions
       pm.test('Response has id', function () { pm.expect(body.id).to.be.a('string').and.not.empty; });
       pm.test('customerId matches', function () { pm.expect(body.customerId).to.eql('usr-002'); });
-      pm.test('total matches', function () { pm.expect(body.total).to.eql(99.5); });
+      pm.test('totalAmount matches', function () { pm.expect(body.totalAmount).to.eql(99.5); });
       pm.collectionVariables.set('qaRecordId', body.id);
     language: text/javascript
 order: 1000
